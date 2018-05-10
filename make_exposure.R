@@ -8,8 +8,6 @@ library('raster')
 library('ggplot2')
 library('geosphere')
 
-#setwd("/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/")
-
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
 
@@ -59,12 +57,12 @@ if ('walk' %in% mode) {
 
 ##### In here is where we calculate the offset for where the journey is taking place compared to the centre of the road
 
-for (i in 2:nrow(result)) {
-  
-  
-}
-
-bearing(result[2,], result[3,])
+#for (i in 2:nrow(result)) {
+# 
+#
+#  bearing(result[2,], result[3,])
+#    
+#}
 
 
 #####
@@ -126,13 +124,13 @@ wf_2021_pm25             <- raster('air_quality/pm25_2021.asc')
 crs(wf_2021_pm25)        <- CRS(ukgrid)
 
 ## 2021 concentration maps with schemes
-wf_2021_no2_s            <- raster('air_quality/no2_2021.asc')
+wf_2021_no2_s            <- raster('air_quality/no2_2021_s.asc')
 crs(wf_2021_no2_s)       <- CRS(ukgrid)
-wf_2021_nox_s            <- raster('air_quality/nox_2021.asc')
+wf_2021_nox_s            <- raster('air_quality/nox_2021_s.asc')
 crs(wf_2021_nox_s)       <- CRS(ukgrid)
-wf_2021_pm10_s           <- raster('air_quality/pm10_2021.asc')
+wf_2021_pm10_s           <- raster('air_quality/pm10_2021_s.asc')
 crs(wf_2021_pm10_s)      <- CRS(ukgrid)
-wf_2021_pm25_s           <- raster('air_quality/pm25_2021.asc')
+wf_2021_pm25_s           <- raster('air_quality/pm25_2021_s.asc')
 crs(wf_2021_pm25_s)      <- CRS(ukgrid)
 
 rm(timeslots, duration, start_time )
@@ -152,10 +150,10 @@ result@data$pm10_2021          <- extract(wf_2021_pm10, result@coords)
 result@data$nox_2021           <- extract(wf_2021_nox, result@coords)
 
 # 2021 with scheme
-result@data$no2_2021_s         <- extract(wf_2021_no2, result@coords)
-result@data$pm25_2021_s        <- extract(wf_2021_pm25, result@coords)
-result@data$pm10_2021_se       <- extract(wf_2021_pm10, result@coords)
-result@data$nox_2021_s         <- extract(wf_2021_nox, result@coords)
+result@data$no2_2021_s         <- extract(wf_2021_no2_s, result@coords)
+result@data$pm25_2021_s        <- extract(wf_2021_pm25_s, result@coords)
+result@data$pm10_2021_s        <- extract(wf_2021_pm10_s, result@coords)
+result@data$nox_2021_s         <- extract(wf_2021_nox_s, result@coords)
 
 ## Calculate some cumulative exposure data for each pollutant by transport mode
 
@@ -175,7 +173,7 @@ result@data$cumulative_nox_2021  <- cumsum(result@data$nox_2021)
 result@data$cumulative_no2_2021_s  <- cumsum(result@data$no2_2021_s)
 result@data$cumulative_pm25_2021_s <- cumsum(result@data$pm25_2021_s)
 result@data$cumulative_pm10_2021_s <- cumsum(result@data$pm10_2021_s)
-result@data$cumulative_nox_2021_s  <- cumsum(result@data$nox_2021_S)
+result@data$cumulative_nox_2021_s  <- cumsum(result@data$nox_2021_s)
 
 ## Put results back into the starting table
 exposure_routes[i,'mean_no2_2013']       <- mean(result@data$no2_2013)
