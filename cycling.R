@@ -1,4 +1,4 @@
-google_api_key       <- 'AIzaSyDeuJbS1ht7H5oO1pUoLWKjficxNgp54nY'
+source('./google_api_key.R')
 
 if (is.na(via_array[[1]])) {
 
