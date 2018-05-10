@@ -8,15 +8,16 @@ library('raster')
 library('ggplot2')
 library('geosphere')
 
-setwd("/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/")
+#setwd("/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/")
 
-exposure_routes <- read.csv('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/exposure_journeys.csv',
+exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
 
 exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
 for (i in 1:nrow(exposure_routes)) {
 
+  
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
 start_lon         <- exposure_routes[i,]$start_lon
@@ -39,8 +40,8 @@ ukgrid                  <- "+init=epsg:27700"
 google_projected        <- "+init=epsg:3857 +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"
 
 # Take the start/end data and get a route from Google
-if ('walk' %in% mode)     { source("/home/james/mounts/James/drayson/routing/walking.R") }
-if ('bicycle' %in% mode)  { source("/home/james/mounts/James/drayson/routing/cycling.R") }
+if ('walk' %in% mode)     { source("routing/walking.R") }
+if ('bicycle' %in% mode)  { source("routing/cycling.R") }
 
 rm(start_lat, start_lon, end_lat, end_lon, via_array)
 
@@ -59,6 +60,7 @@ if ('walk' %in% mode) {
 ##### In here is where we calculate the offset for where the journey is taking place compared to the centre of the road
 
 for (i in 2:nrow(result)) {
+  
   
 }
 
@@ -104,33 +106,33 @@ proj4string(result)       <- CRS(ukgrid)
 # Now get our pollutant files
 
 ## 2013 concentration maps
-wf_2013_no2              <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/no2_2013.asc')
+wf_2013_no2              <- raster('air_quality/no2_2013.asc')
 crs(wf_2013_no2)         <- CRS(ukgrid)
-wf_2013_nox              <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/nox_2013.asc')
+wf_2013_nox              <- raster('air_quality/nox_2013.asc')
 crs(wf_2013_nox)         <- CRS(ukgrid)
-wf_2013_pm10             <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm10_2013.asc')
+wf_2013_pm10             <- raster('air_quality/pm10_2013.asc')
 crs(wf_2013_pm10)        <- CRS(ukgrid)
-wf_2013_pm25             <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm25_2013.asc')
+wf_2013_pm25             <- raster('air_quality/pm25_2013.asc')
 crs(wf_2013_pm25)        <- CRS(ukgrid)
 
 ## 2021 concentration maps without schemes
-wf_2021_no2              <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/no2_2021.asc')
+wf_2021_no2              <- raster('air_quality/no2_2021.asc')
 crs(wf_2021_no2)         <- CRS(ukgrid)
-wf_2021_nox              <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/nox_2021.asc')
+wf_2021_nox              <- raster('air_quality/nox_2021.asc')
 crs(wf_2021_nox)         <- CRS(ukgrid)
-wf_2021_pm10             <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm10_2021.asc')
+wf_2021_pm10             <- raster('air_quality/pm10_2021.asc')
 crs(wf_2021_pm10)        <- CRS(ukgrid)
-wf_2021_pm25             <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm25_2021.asc')
+wf_2021_pm25             <- raster('air_quality/pm25_2021.asc')
 crs(wf_2021_pm25)        <- CRS(ukgrid)
 
 ## 2021 concentration maps with schemes
-wf_2021_no2_s            <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/no2_2021.asc')
+wf_2021_no2_s            <- raster('air_quality/no2_2021.asc')
 crs(wf_2021_no2_s)       <- CRS(ukgrid)
-wf_2021_nox_s            <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/nox_2021.asc')
+wf_2021_nox_s            <- raster('air_quality/nox_2021.asc')
 crs(wf_2021_nox_s)       <- CRS(ukgrid)
-wf_2021_pm10_s           <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm10_2021.asc')
+wf_2021_pm10_s           <- raster('air_quality/pm10_2021.asc')
 crs(wf_2021_pm10_s)      <- CRS(ukgrid)
-wf_2021_pm25_s           <- raster('/home/james/mounts/botanix-botanixg/Projects/WalthamForest/Modelling/re_sampling/5m_outputs/pm25_2021.asc')
+wf_2021_pm25_s           <- raster('air_quality/pm25_2021.asc')
 crs(wf_2021_pm25_s)      <- CRS(ukgrid)
 
 rm(timeslots, duration, start_time )
