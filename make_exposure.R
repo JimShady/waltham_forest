@@ -7,6 +7,7 @@ library("sp")
 library('raster')
 library('ggplot2')
 library('geosphere')
+library('sf')
 
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
@@ -15,7 +16,6 @@ exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
 for (i in 1:nrow(exposure_routes)) {
 
-  
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
 start_lon         <- exposure_routes[i,]$start_lon
@@ -105,9 +105,10 @@ new_result$mode         <- unique(result$mode)
 
 result <- new_result
 rm(new_result, new.s, offset, x, xn, xs, y, yn, ys, segment.shift)
+names(result)[1:2] <- c('lon', 'lat')
 ##### End of the help from stackoverflow
 
-coordinates(result) <- ~x + y
+coordinates(result) <- ~lon + lat
 proj4string(result) = CRS(latlong)
 result <- spTransform(result, ukgrid)
 
@@ -136,10 +137,9 @@ result$id                 <- exposure_routes[i,]$journey_id
 result$mode               <- mode
 result$line               <- NA
 result                    <- cbind(result, timeslots)
-result                    <- result[,c('id', 'mode', 'line', 'time', 'x', 'y')]
-coordinates(result)       <- ~x + y
+result                    <- result[,c('id', 'mode', 'line', 'time', 'lon', 'lat')]
+coordinates(result)       <- ~lon + lat
 proj4string(result)       <- CRS(ukgrid)
-
 
 # Now get our pollutant files
 
@@ -178,42 +178,44 @@ rm(timeslots, duration, start_time )
 # Extract the concentrations from the Raster files
 
 # 2013
-result@data$no2_2013           <- extract(wf_2013_no2, result@coords)
-result@data$pm25_2013          <- extract(wf_2013_pm25, result@coords)
-result@data$pm10_2013          <- extract(wf_2013_pm10, result@coords)
-result@data$nox_2013           <- extract(wf_2013_nox, result@coords)
+result@data$no2_2013                     <- extract(wf_2013_no2, result@coords)
+result@data$pm25_2013                    <- extract(wf_2013_pm25, result@coords)
+result@data$pm10_2013                    <- extract(wf_2013_pm10, result@coords)
+result@data$nox_2013                     <- extract(wf_2013_nox, result@coords)
 
 # 2021 without scheme
-result@data$no2_2021           <- extract(wf_2021_no2, result@coords)
-result@data$pm25_2021          <- extract(wf_2021_pm25, result@coords)
-result@data$pm10_2021          <- extract(wf_2021_pm10, result@coords)
-result@data$nox_2021           <- extract(wf_2021_nox, result@coords)
+result@data$no2_2021                     <- extract(wf_2021_no2, result@coords)
+result@data$pm25_2021                    <- extract(wf_2021_pm25, result@coords)
+result@data$pm10_2021                    <- extract(wf_2021_pm10, result@coords)
+result@data$nox_2021                     <- extract(wf_2021_nox, result@coords)
 
 # 2021 with scheme
-result@data$no2_2021_s         <- extract(wf_2021_no2_s, result@coords)
-result@data$pm25_2021_s        <- extract(wf_2021_pm25_s, result@coords)
-result@data$pm10_2021_s        <- extract(wf_2021_pm10_s, result@coords)
-result@data$nox_2021_s         <- extract(wf_2021_nox_s, result@coords)
+result@data$no2_2021_s                   <- extract(wf_2021_no2_s, result@coords)
+result@data$pm25_2021_s                  <- extract(wf_2021_pm25_s, result@coords)
+result@data$pm10_2021_s                  <- extract(wf_2021_pm10_s, result@coords)
+result@data$nox_2021_s                   <- extract(wf_2021_nox_s, result@coords)
 
 ## Calculate some cumulative exposure data for each pollutant by transport mode
 
 # 2013
-result@data$cumulative_no2_2013  <- cumsum(result@data$no2_2013)
-result@data$cumulative_pm25_2013 <- cumsum(result@data$pm25_2013)
-result@data$cumulative_pm10_2013 <- cumsum(result@data$pm10_2013)
-result@data$cumulative_nox_2013  <- cumsum(result@data$nox_2013)
+result@data$cumulative_no2_2013          <- cumsum(result@data$no2_2013)
+result@data$cumulative_pm25_2013         <- cumsum(result@data$pm25_2013)
+result@data$cumulative_pm10_2013         <- cumsum(result@data$pm10_2013)
+result@data$cumulative_nox_2013          <- cumsum(result@data$nox_2013)
 
 # 2021 without scheme
-result@data$cumulative_no2_2021  <- cumsum(result@data$no2_2021)
-result@data$cumulative_pm25_2021 <- cumsum(result@data$pm25_2021)
-result@data$cumulative_pm10_2021 <- cumsum(result@data$pm10_2021)
-result@data$cumulative_nox_2021  <- cumsum(result@data$nox_2021)
+result@data$cumulative_no2_2021          <- cumsum(result@data$no2_2021)
+result@data$cumulative_pm25_2021         <- cumsum(result@data$pm25_2021)
+result@data$cumulative_pm10_2021         <- cumsum(result@data$pm10_2021)
+result@data$cumulative_nox_2021          <- cumsum(result@data$nox_2021)
 
 # 2021 with scheme
-result@data$cumulative_no2_2021_s  <- cumsum(result@data$no2_2021_s)
-result@data$cumulative_pm25_2021_s <- cumsum(result@data$pm25_2021_s)
-result@data$cumulative_pm10_2021_s <- cumsum(result@data$pm10_2021_s)
-result@data$cumulative_nox_2021_s  <- cumsum(result@data$nox_2021_s)
+result@data$cumulative_no2_2021_s        <- cumsum(result@data$no2_2021_s)
+result@data$cumulative_pm25_2021_s       <- cumsum(result@data$pm25_2021_s)
+result@data$cumulative_pm10_2021_s       <- cumsum(result@data$pm10_2021_s)
+result@data$cumulative_nox_2021_s        <- cumsum(result@data$nox_2021_s)
+
+if (i == 1){result_compilation <- result} else { result_compilation <- rbind(result_compilation, result) }
 
 ## Put results back into the starting table
 exposure_routes[i,'mean_no2_2013']       <- mean(result@data$no2_2013)
@@ -226,25 +228,25 @@ exposure_routes[i,'mean_pm25_2021']      <- mean(result@data$pm25_2021)
 exposure_routes[i,'mean_pm10_2021']      <- mean(result@data$pm10_2021)
 exposure_routes[i,'mean_nox_2021']       <- mean(result@data$nox_2021)
 
-exposure_routes[i,'mean_no2_2021_s']       <- mean(result@data$no2_2021_s)
-exposure_routes[i,'mean_pm25_2021_s']      <- mean(result@data$pm25_2021_s)
-exposure_routes[i,'mean_pm10_2021_s']      <- mean(result@data$pm10_2021_s)
-exposure_routes[i,'mean_nox_2021_s']       <- mean(result@data$nox_2021_s)
+exposure_routes[i,'mean_no2_2021_s']     <- mean(result@data$no2_2021_s)
+exposure_routes[i,'mean_pm25_2021_s']    <- mean(result@data$pm25_2021_s)
+exposure_routes[i,'mean_pm10_2021_s']    <- mean(result@data$pm10_2021_s)
+exposure_routes[i,'mean_nox_2021_s']     <- mean(result@data$nox_2021_s)
 
-exposure_routes[i,'total_no2_2013']       <- mean(result@data$cumulative_no2_2013)
-exposure_routes[i,'total_pm25_2013']      <- mean(result@data$cumulative_pm25_2013)
-exposure_routes[i,'total_pm10_2013']      <- mean(result@data$cumulative_pm10_2013)
-exposure_routes[i,'total_nox_2013']       <- mean(result@data$cumulative_nox_2013)
+exposure_routes[i,'total_no2_2013']      <- mean(result@data$cumulative_no2_2013)
+exposure_routes[i,'total_pm25_2013']     <- mean(result@data$cumulative_pm25_2013)
+exposure_routes[i,'total_pm10_2013']     <- mean(result@data$cumulative_pm10_2013)
+exposure_routes[i,'total_nox_2013']      <- mean(result@data$cumulative_nox_2013)
 
-exposure_routes[i,'total_no2_2021']       <- mean(result@data$cumulative_no2_2021)
-exposure_routes[i,'total_pm25_2021']      <- mean(result@data$cumulative_pm25_2021)
-exposure_routes[i,'total_pm10_2021']      <- mean(result@data$cumulative_pm10_2021)
-exposure_routes[i,'total_nox_2021']       <- mean(result@data$cumulative_nox_2021)
+exposure_routes[i,'total_no2_2021']      <- mean(result@data$cumulative_no2_2021)
+exposure_routes[i,'total_pm25_2021']     <- mean(result@data$cumulative_pm25_2021)
+exposure_routes[i,'total_pm10_2021']     <- mean(result@data$cumulative_pm10_2021)
+exposure_routes[i,'total_nox_2021']      <- mean(result@data$cumulative_nox_2021)
 
-exposure_routes[i,'total_no2_2021_s']       <- mean(result@data$cumulative_no2_2021_s)
-exposure_routes[i,'total_pm25_2021_s']      <- mean(result@data$cumulative_pm25_2021_s)
-exposure_routes[i,'total_pm10_2021_s']      <- mean(result@data$cumulative_pm10_2021_s)
-exposure_routes[i,'total_nox_2021_s']       <- mean(result@data$cumulative_nox_2021_s)
+exposure_routes[i,'total_no2_2021_s']    <- mean(result@data$cumulative_no2_2021_s)
+exposure_routes[i,'total_pm25_2021_s']   <- mean(result@data$cumulative_pm25_2021_s)
+exposure_routes[i,'total_pm10_2021_s']   <- mean(result@data$cumulative_pm10_2021_s)
+exposure_routes[i,'total_nox_2021_s']    <- mean(result@data$cumulative_nox_2021_s)
 
 Sys.sleep(2)
 
