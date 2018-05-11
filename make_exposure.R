@@ -27,9 +27,10 @@ start_time        <- Sys.time() + 1000
 seggregated       <- exposure_routes[i,]$seggregated
 
 ## take account of where in the road the journey is taking place
-if (mode == 'walk')                           {offset <- 6}
-if (mode == 'bicycle' & seggregated == 'no')  {offset <- 2}
-if (mode == 'bicycle' & seggregated == 'yes') {offset <- 4}
+if (mode == 'walk'    & seggregated == 'no')  {offset <- 6}
+if (mode == 'walk'    & seggregated == 'yes') {offset <- 8}
+if (mode == 'bicycle' & seggregated == 'no')  {offset <- 4}
+if (mode == 'bicycle' & seggregated == 'yes') {offset <- 6}
 
 
 # EPSG strings we might need
@@ -56,18 +57,57 @@ if ('walk' %in% mode) {
 }
 
 ##### In here is where we calculate the offset for where the journey is taking place compared to the centre of the road
-
-#for (i in 2:nrow(result)) {
-# 
-#
-#  bearing(result[2,], result[3,])
-#    
-#}
-
-
-#####
+##### https://stackoverflow.com/questions/50275195/draw-a-parallel-line-in-r-offset-from-a-line
 
 coordinates(result) <- ~lon + lat
+proj4string(result) =  CRS(latlong)
+result <- spTransform(result, ukgrid)
+
+segment.shift <- function(x, y, d){
+  
+  # calculate vector
+  v <- c(x[2] - x[1],y[2] - y[1])
+  
+  # normalize vector
+  v <- v/sqrt((v[1]**2 + v[2]**2))
+  
+  # perpendicular unit vector
+  vnp <- c( -v[2], v[1] )
+  
+  return(list(x =  c( x[1] + d*vnp[1], x[2] + d*vnp[1]), 
+              y =  c( y[1] + d*vnp[2], y[2] + d*vnp[2])))
+  
+}
+
+x <- result@coords[,1]
+y <- result@coords[,2]
+
+xn <- numeric( (length(x) - 1) * 2 )
+yn <- numeric( (length(y) - 1) * 2 )
+
+for ( p in 1:(length(x) - 1) ) {
+  xs <- c(x[p], x[p+1])
+  ys <- c(y[p], y[p+1])
+  new.s <- segment.shift( xs, ys, offset )
+  xn[(p-1)*2+1] <- new.s$x[1] ; xn[(p-1)*2+2] <- new.s$x[2]
+  yn[(p-1)*2+1] <- new.s$y[1] ; yn[(p-1)*2+2] <- new.s$y[2]
+}
+
+new_result   <- data.frame(x = xn,
+                           y = yn)
+coordinates(new_result) <- ~x+y
+proj4string(new_result) = CRS(ukgrid)
+new_result              <- spTransform(new_result, latlong)
+new_result              <- data.frame(new_result)
+new_result$id           <- unique(result$id)
+new_result$line         <- unique(result$line)
+new_result$mode         <- unique(result$mode)
+
+result <- new_result
+rm(new_result, new.s, offset, x, xn, xs, y, yn, ys, segment.shift)
+##### End of the help from stackoverflow
+
+coordinates(result) <- ~x + y
 proj4string(result) = CRS(latlong)
 result <- spTransform(result, ukgrid)
 
@@ -96,8 +136,8 @@ result$id                 <- exposure_routes[i,]$journey_id
 result$mode               <- mode
 result$line               <- NA
 result                    <- cbind(result, timeslots)
-result                    <- result[,c('id', 'mode', 'line', 'time', 'lon', 'lat')]
-coordinates(result)       <- ~lon + lat
+result                    <- result[,c('id', 'mode', 'line', 'time', 'x', 'y')]
+coordinates(result)       <- ~x + y
 proj4string(result)       <- CRS(ukgrid)
 
 
@@ -205,5 +245,7 @@ exposure_routes[i,'total_no2_2021_s']       <- mean(result@data$cumulative_no2_2
 exposure_routes[i,'total_pm25_2021_s']      <- mean(result@data$cumulative_pm25_2021_s)
 exposure_routes[i,'total_pm10_2021_s']      <- mean(result@data$cumulative_pm10_2021_s)
 exposure_routes[i,'total_nox_2021_s']       <- mean(result@data$cumulative_nox_2021_s)
+
+Sys.sleep(2)
 
 }
