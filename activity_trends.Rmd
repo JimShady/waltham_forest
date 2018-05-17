@@ -121,4 +121,4 @@ ggplot(ltds_data, aes(x = year, y = cycling_duration, colour = age_category, gro
 ```
 
 ### Results
-[Download the CSV of the above graphs](./csv_outputs/walking_cycling_data.csv)
+[Download the CSV of the above graphs](https://raw.githubusercontent.com/JimShady/waltham_forest/master/csv_outputs/walking_cycling_data.csv)
