@@ -8,13 +8,17 @@ library('raster')
 library('ggplot2')
 library('geosphere')
 library('sf')
+library('reshape2')
 
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
 
 exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
+exposure_routes <- exposure_routes[exposure_routes$name == 'chingford_to_chingford_police',]
+
 for (i in 1:nrow(exposure_routes)) {
+#  for (i in 1:3) {
 
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
@@ -59,53 +63,53 @@ if ('walk' %in% mode) {
 ##### In here is where we calculate the offset for where the journey is taking place compared to the centre of the road
 ##### https://stackoverflow.com/questions/50275195/draw-a-parallel-line-in-r-offset-from-a-line
 
-coordinates(result) <- ~lon + lat
-proj4string(result) =  CRS(latlong)
-result <- spTransform(result, ukgrid)
+#coordinates(result) <- ~lon + lat
+#proj4string(result) =  CRS(latlong)
+#result <- spTransform(result, ukgrid)
 
-segment.shift <- function(x, y, d){
-  
+#segment.shift <- function(x, y, d){
+#  
   # calculate vector
-  v <- c(x[2] - x[1],y[2] - y[1])
-  
+#  v <- c(x[2] - x[1],y[2] - y[1])
+#  
   # normalize vector
-  v <- v/sqrt((v[1]**2 + v[2]**2))
-  
+#  v <- v/sqrt((v[1]**2 + v[2]**2))
+#  
   # perpendicular unit vector
-  vnp <- c( -v[2], v[1] )
-  
-  return(list(x =  c( x[1] + d*vnp[1], x[2] + d*vnp[1]), 
-              y =  c( y[1] + d*vnp[2], y[2] + d*vnp[2])))
-  
-}
+#  vnp <- c( -v[2], v[1] )
+#  
+#  return(list(x =  c( x[1] + d*vnp[1], x[2] + d*vnp[1]), 
+#              y =  c( y[1] + d*vnp[2], y[2] + d*vnp[2])))
+#  
+#}
+#
+#x <- result@coords[,1]
+#y <- result@coords[,2]
+#
+#xn <- numeric( (length(x) - 1) * 2 )
+#yn <- numeric( (length(y) - 1) * 2 )
+#
+#for ( p in 1:(length(x) - 1) ) {
+#  xs <- c(x[p], x[p+1])
+#  ys <- c(y[p], y[p+1])
+#  new.s <- segment.shift( xs, ys, offset)
+#  xn[(p-1)*2+1] <- new.s$x[1] ; xn[(p-1)*2+2] <- new.s$x[2]
+#  yn[(p-1)*2+1] <- new.s$y[1] ; yn[(p-1)*2+2] <- new.s$y[2]
+#}
 
-x <- result@coords[,1]
-y <- result@coords[,2]
+#new_result   <- data.frame(x = xn,
+#                           y = yn)
+#coordinates(new_result) <- ~x+y
+#proj4string(new_result) = CRS(ukgrid)
+#new_result              <- spTransform(new_result, latlong)
+#new_result              <- data.frame(new_result)
+#new_result$id           <- unique(result$id)
+#new_result$line         <- unique(result$line)
+#new_result$mode         <- unique(result$mode)
 
-xn <- numeric( (length(x) - 1) * 2 )
-yn <- numeric( (length(y) - 1) * 2 )
-
-for ( p in 1:(length(x) - 1) ) {
-  xs <- c(x[p], x[p+1])
-  ys <- c(y[p], y[p+1])
-  new.s <- segment.shift( xs, ys, offset )
-  xn[(p-1)*2+1] <- new.s$x[1] ; xn[(p-1)*2+2] <- new.s$x[2]
-  yn[(p-1)*2+1] <- new.s$y[1] ; yn[(p-1)*2+2] <- new.s$y[2]
-}
-
-new_result   <- data.frame(x = xn,
-                           y = yn)
-coordinates(new_result) <- ~x+y
-proj4string(new_result) = CRS(ukgrid)
-new_result              <- spTransform(new_result, latlong)
-new_result              <- data.frame(new_result)
-new_result$id           <- unique(result$id)
-new_result$line         <- unique(result$line)
-new_result$mode         <- unique(result$mode)
-
-result <- new_result
-rm(new_result, new.s, offset, x, xn, xs, y, yn, ys, segment.shift)
-names(result)[1:2] <- c('lon', 'lat')
+#result <- new_result
+#rm(new_result, new.s, offset, x, xn, xs, y, yn, ys, segment.shift)
+#names(result)[1:2] <- c('lon', 'lat')
 ##### End of the help from stackoverflow
 
 coordinates(result) <- ~lon + lat
@@ -138,12 +142,15 @@ result$mode               <- mode
 result$line               <- NA
 result                    <- cbind(result, timeslots)
 result                    <- result[,c('id', 'mode', 'line', 'time', 'lon', 'lat')]
+result$scheme             <- exposure_routes[i,]$scheme
+result$year               <- exposure_routes[i,]$year
 coordinates(result)       <- ~lon + lat
 proj4string(result)       <- CRS(ukgrid)
 
 # Now get our pollutant files
 
 ## 2013 concentration maps
+if (exposure_routes[i,]$year == 2013) {
 wf_2013_no2              <- raster('air_quality/no2_2013.asc')
 crs(wf_2013_no2)         <- CRS(ukgrid)
 wf_2013_nox              <- raster('air_quality/nox_2013.asc')
@@ -153,7 +160,31 @@ crs(wf_2013_pm10)        <- CRS(ukgrid)
 wf_2013_pm25             <- raster('air_quality/pm25_2013.asc')
 crs(wf_2013_pm25)        <- CRS(ukgrid)
 
+# Extract concentrations
+no2                                   <- result
+no2@data$pollutant                    <- 'no2'
+no2@data$concentration                <- extract(wf_2013_no2, no2@coords)
+
+pm25                                  <- result
+pm25@data$pollutant                   <- 'pm25'
+pm25@data$concentration               <- extract(wf_2013_pm25, pm25@coords)
+
+pm10                                  <- result
+pm10@data$pollutant                   <- 'pm10'
+pm10@data$concentration               <- extract(wf_2013_pm10, pm10@coords)
+
+nox                                   <- result
+nox@data$pollutant                    <- 'nox'
+nox@data$concentration                <- extract(wf_2013_nox, nox@coords)
+
+result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
+
+rm(wf_2013_no2, wf_2013_nox, wf_2013_pm10, wf_2013_pm25,nox, no2, pm25, pm10)
+
+}
+
 ## 2021 concentration maps without schemes
+if (exposure_routes[i,]$year == 2021 & exposure_routes[i,]$scheme == 'none') {
 wf_2021_no2              <- raster('air_quality/no2_2021.asc')
 crs(wf_2021_no2)         <- CRS(ukgrid)
 wf_2021_nox              <- raster('air_quality/nox_2021.asc')
@@ -163,7 +194,32 @@ crs(wf_2021_pm10)        <- CRS(ukgrid)
 wf_2021_pm25             <- raster('air_quality/pm25_2021.asc')
 crs(wf_2021_pm25)        <- CRS(ukgrid)
 
+
+# Extract concentrations
+no2                                   <- result
+no2@data$pollutant                    <- 'no2'
+no2@data$concentration                <- extract(wf_2021_no2, no2@coords)
+
+pm25                                  <- result
+pm25@data$pollutant                   <- 'pm25'
+pm25@data$concentration               <- extract(wf_2021_pm25, pm25@coords)
+
+pm10                                  <- result
+pm10@data$pollutant                   <- 'pm10'
+pm10@data$concentration               <- extract(wf_2021_pm10, pm10@coords)
+
+nox                                   <- result
+nox@data$pollutant                    <- 'nox'
+nox@data$concentration                <- extract(wf_2021_nox, nox@coords)
+
+result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
+
+rm(wf_2021_no2, wf_2021_nox, wf_2021_pm10, wf_2021_pm25,nox, no2, pm25, pm10)
+
+}
+
 ## 2021 concentration maps with schemes
+if (exposure_routes[i,]$year == 2021 & exposure_routes[i,]$scheme == 'implemented') {
 wf_2021_no2_s            <- raster('air_quality/no2_2021_s.asc')
 crs(wf_2021_no2_s)       <- CRS(ukgrid)
 wf_2021_nox_s            <- raster('air_quality/nox_2021_s.asc')
@@ -173,81 +229,67 @@ crs(wf_2021_pm10_s)      <- CRS(ukgrid)
 wf_2021_pm25_s           <- raster('air_quality/pm25_2021_s.asc')
 crs(wf_2021_pm25_s)      <- CRS(ukgrid)
 
-rm(timeslots, duration, start_time )
+# Extract concentrations
+no2                                   <- result
+no2@data$pollutant                    <- 'no2'
+no2@data$concentration                <- extract(wf_2021_no2_s, no2@coords)
 
-# Extract the concentrations from the Raster files
+pm25                                  <- result
+pm25@data$pollutant                   <- 'pm25'
+pm25@data$concentration               <- extract(wf_2021_pm25_s, pm25@coords)
 
-# 2013
-result@data$no2_2013                     <- extract(wf_2013_no2, result@coords)
-result@data$pm25_2013                    <- extract(wf_2013_pm25, result@coords)
-result@data$pm10_2013                    <- extract(wf_2013_pm10, result@coords)
-result@data$nox_2013                     <- extract(wf_2013_nox, result@coords)
+pm10                                  <- result
+pm10@data$pollutant                   <- 'pm10'
+pm10@data$concentration               <- extract(wf_2021_pm10_s, pm10@coords)
 
-# 2021 without scheme
-result@data$no2_2021                     <- extract(wf_2021_no2, result@coords)
-result@data$pm25_2021                    <- extract(wf_2021_pm25, result@coords)
-result@data$pm10_2021                    <- extract(wf_2021_pm10, result@coords)
-result@data$nox_2021                     <- extract(wf_2021_nox, result@coords)
+nox                                   <- result
+nox@data$pollutant                    <- 'nox'
+nox@data$concentration                <- extract(wf_2021_nox_s, nox@coords)
 
-# 2021 with scheme
-result@data$no2_2021_s                   <- extract(wf_2021_no2_s, result@coords)
-result@data$pm25_2021_s                  <- extract(wf_2021_pm25_s, result@coords)
-result@data$pm10_2021_s                  <- extract(wf_2021_pm10_s, result@coords)
-result@data$nox_2021_s                   <- extract(wf_2021_nox_s, result@coords)
+result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
 
-## Calculate some cumulative exposure data for each pollutant by transport mode
-
-# 2013
-result@data$cumulative_no2_2013          <- cumsum(result@data$no2_2013)
-result@data$cumulative_pm25_2013         <- cumsum(result@data$pm25_2013)
-result@data$cumulative_pm10_2013         <- cumsum(result@data$pm10_2013)
-result@data$cumulative_nox_2013          <- cumsum(result@data$nox_2013)
-
-# 2021 without scheme
-result@data$cumulative_no2_2021          <- cumsum(result@data$no2_2021)
-result@data$cumulative_pm25_2021         <- cumsum(result@data$pm25_2021)
-result@data$cumulative_pm10_2021         <- cumsum(result@data$pm10_2021)
-result@data$cumulative_nox_2021          <- cumsum(result@data$nox_2021)
-
-# 2021 with scheme
-result@data$cumulative_no2_2021_s        <- cumsum(result@data$no2_2021_s)
-result@data$cumulative_pm25_2021_s       <- cumsum(result@data$pm25_2021_s)
-result@data$cumulative_pm10_2021_s       <- cumsum(result@data$pm10_2021_s)
-result@data$cumulative_nox_2021_s        <- cumsum(result@data$nox_2021_s)
-
-if (i == 1){result_compilation <- result} else { result_compilation <- rbind(result_compilation, result) }
-
-## Put results back into the starting table
-exposure_routes[i,'mean_no2_2013']       <- mean(result@data$no2_2013)
-exposure_routes[i,'mean_pm25_2013']      <- mean(result@data$pm25_2013)
-exposure_routes[i,'mean_pm10_2013']      <- mean(result@data$pm10_2013)
-exposure_routes[i,'mean_nox_2013']       <- mean(result@data$nox_2013)
-
-exposure_routes[i,'mean_no2_2021']       <- mean(result@data$no2_2021)
-exposure_routes[i,'mean_pm25_2021']      <- mean(result@data$pm25_2021)
-exposure_routes[i,'mean_pm10_2021']      <- mean(result@data$pm10_2021)
-exposure_routes[i,'mean_nox_2021']       <- mean(result@data$nox_2021)
-
-exposure_routes[i,'mean_no2_2021_s']     <- mean(result@data$no2_2021_s)
-exposure_routes[i,'mean_pm25_2021_s']    <- mean(result@data$pm25_2021_s)
-exposure_routes[i,'mean_pm10_2021_s']    <- mean(result@data$pm10_2021_s)
-exposure_routes[i,'mean_nox_2021_s']     <- mean(result@data$nox_2021_s)
-
-exposure_routes[i,'total_no2_2013']      <- mean(result@data$cumulative_no2_2013)
-exposure_routes[i,'total_pm25_2013']     <- mean(result@data$cumulative_pm25_2013)
-exposure_routes[i,'total_pm10_2013']     <- mean(result@data$cumulative_pm10_2013)
-exposure_routes[i,'total_nox_2013']      <- mean(result@data$cumulative_nox_2013)
-
-exposure_routes[i,'total_no2_2021']      <- mean(result@data$cumulative_no2_2021)
-exposure_routes[i,'total_pm25_2021']     <- mean(result@data$cumulative_pm25_2021)
-exposure_routes[i,'total_pm10_2021']     <- mean(result@data$cumulative_pm10_2021)
-exposure_routes[i,'total_nox_2021']      <- mean(result@data$cumulative_nox_2021)
-
-exposure_routes[i,'total_no2_2021_s']    <- mean(result@data$cumulative_no2_2021_s)
-exposure_routes[i,'total_pm25_2021_s']   <- mean(result@data$cumulative_pm25_2021_s)
-exposure_routes[i,'total_pm10_2021_s']   <- mean(result@data$cumulative_pm10_2021_s)
-exposure_routes[i,'total_nox_2021_s']    <- mean(result@data$cumulative_nox_2021_s)
-
-Sys.sleep(2)
+rm(wf_2021_no2_s, wf_2021_nox_s, wf_2021_pm10_s, wf_2021_pm25_s,nox, no2, pm25, pm10)
 
 }
+
+if (i == 1) {final_result <- result} else {final_result <- rbind.SpatialPointsDataFrame(final_result, result)}
+
+rm(timeslots, duration, start_time, result)
+
+}
+
+final_result$time <- NULL
+final_result$line <- NULL
+final_result      <- merge(final_result, exposure_routes[,c('journey_id', 'name')], by.x = 'id', by.y = 'journey_id')
+rm(i, google_projected, latlong, mode, p, seggregated, ukgrid)
+
+#####################
+## something odd going on with Cycling coppermill_to_wood_street. Not 3 times the route. Should be 60, 60, 60, 180. Not 132.
+## Similar with leytonstone_to_stratford_drapers
+
+#plot(final_result[final_result$name == 'coppermill_to_wood_street',])
+
+
+
+
+
+aggregate(concentration ~ name + mode + scheme + year + pollutant, data=final_result, FUN=mean)
+
+plot(extent(final_result) * 1.1)
+
+plot(final_result[final_result$year == '2013' & final_result$pollutant == 'no2',], add=T)
+plot(final_result[final_result$year == '2021' & final_result$pollutant == 'no2' & final_result$scheme == 'none',], add=T, col='red')
+plot(final_result[final_result$year == '2021' & final_result$pollutant == 'no2' & final_result$scheme == 'implemented',], add=T, col='blue')
+
+#for (i in 1:length(unique(final_result$name))) {
+#  
+#  scheme_name <- unique(final_result$name)[i]
+#  
+#  ggplot(final_result[final_result$name == scheme_name,]@data, aes(x = as.factor(year), y = concentration, fill = scheme)) +
+#    geom_boxplot() +
+#    facet_wrap(name~pollutant, ncol = 4, scales = 'free_y') +
+#    xlab('Year') +
+#  
+#}
+
+
