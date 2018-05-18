@@ -1,0 +1,124 @@
+---
+title: "Activity trends in Waltham Forest"
+author: "James David Smith"
+output:
+  html_document:
+  toc: true
+toc_float: true
+toc_depth: 4
+collapsed: false
+date: "`r format(Sys.time(), '%Y-%m%-%d %H%:%M')`"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="index.html") })
+---
+
+## Method
+```{r load libraries, include=F}
+library(RPostgreSQL)
+library(ggplot2)
+```
+
+Login details for the PostgreSQL server are stored in a file that isn't sync'd to Github
+```{r credentials}
+credentials <- source('../postgres_credentials.R')
+```
+
+```{r connect to data}
+drv = dbDriver("PostgreSQL")
+con = dbConnect(drv, dbname="LTDS_2015", user=username, password=password, host="10.0.4.240")
+```
+
+Get LTDS data from my database for Waltham Forest, showing person, year, mode, duration and expansion factor
+```{r get data}
+ltds_data     <- activity_data <- dbGetQuery(con, "
+WITH people AS (
+        SELECT      ppid as person,
+                    CASE	
+                    WHEN page < 10 THEN '0-10'
+                    WHEN page BETWEEN 10 AND 19 THEN '10-20'
+                    WHEN page BETWEEN 20 AND 29 THEN '20-30'
+                    WHEN page BETWEEN 30 AND 39 THEN '30-40'
+                    WHEN page BETWEEN 40 AND 49 THEN '40-50'
+                    WHEN page BETWEEN 50 AND 59 THEN '50-60'
+                    WHEN page BETWEEN 60 AND 69 THEN '60-70'
+                    WHEN page BETWEEN 70 AND 79 THEN '70-80'
+                    ELSE '>80'
+                    END AS	age_category,
+                    pyearid as year,
+                    ppiwt as expansion
+        FROM        person
+        WHERE       phaboro = 33),
+   cycling AS (
+        SELECT        substring(spid, 1, length(spid)-3)::text as spid,
+                    SUM(sdurn::numeric) as cycling_duration
+        FROM          stage
+        WHERE         smodec = '2'        
+        GROUP BY      spid
+        ),
+   walking AS (
+        SELECT        substring(spid, 1, length(spid)-3)::text as spid,
+        SUM(sdurn::numeric) as walking_duration
+        FROM          stage
+        WHERE         smodec = '1'
+        GROUP BY      spid
+)
+SELECT     people.person,
+           people.age_category,
+           people.year,
+           people.expansion,
+           CASE WHEN walking.walking_duration IS NULL THEN 0 ELSE walking.walking_duration END AS walking_duration,
+           CASE WHEN cycling.cycling_duration IS NULL THEN 0 ELSE cycling.cycling_duration END AS cycling_duration
+FROM       people
+LEFT JOIN  cycling ON people.person::text = cycling.spid
+LEFT JOIN  walking ON people.person::text = walking.spid")
+
+head(ltds_data)
+```
+
+Now expand the people to be representative of population of Waltham Forest
+
+```{r expansion}
+## Expand the results using expansion factors.
+ltds_data <- data.frame(
+  age_category        =   rep(ltds_data$age_category,     ltds_data$expansion),
+  year                =   rep(ltds_data$year,             ltds_data$expansion),
+  walking_duration    =   rep(ltds_data$walking_duration, ltds_data$expansion),
+  cycling_duration    =   rep(ltds_data$cycling_duration, ltds_data$expansion),
+  stringsAsFactors=FALSE
+)    
+```
+
+Aggregate the data by year
+```{r summary}
+ltds_data <- aggregate(cbind(walking_duration,cycling_duration) ~ age_category+year, data = ltds_data, FUN=mean)
+```
+
+```{r include=FALSE}
+write.csv(ltds_data, 'csv_outputs/walking_cycling_data.csv', row.names = F)
+```
+
+## Walking trends in Waltham Forest (typical minutes of walking per day)
+```{r walking_data, warning=F, message=F, results='hide'}
+
+ggplot(ltds_data, aes(x = year, y = walking_duration, colour = age_category, group = age_category)) + 
+  geom_line()
+  
+
+ggplot(ltds_data, aes(x = year, y = walking_duration, colour = age_category, group = age_category)) + 
+  geom_smooth(method = 'lm')
+
+
+```
+
+
+## Cycling trends in Waltham Forest (typical minutes of cycling per day)
+```{r cycling_data}
+ggplot(ltds_data, aes(x = year, y = cycling_duration, colour = age_category, group = age_category)) + 
+  geom_line()
+
+ggplot(ltds_data, aes(x = year, y = cycling_duration, colour = age_category, group = age_category)) + 
+  geom_smooth(method = 'lm')
+```
+
+### Results
+[Download the CSV of the above graphs](https://raw.githubusercontent.com/JimShady/waltham_forest/master/csv_outputs/walking_cycling_data.csv)
