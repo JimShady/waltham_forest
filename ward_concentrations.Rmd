@@ -1,0 +1,141 @@
+---
+title: "Waltham Forest Ward Concentrations"
+author: "James Smith"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+date: "`r format(Sys.time(), '%Y-%m%-%d %H%:%M')`"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="ward_concentrations.html") })
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+
+### Loading any missing libraries
+
+library(rvest)
+library(stringr)
+library(raster)
+library(rgdal)
+library(rgeos)
+library(ggplot2)
+library(sf)
+library(rmarkdown)
+```
+
+Get the ward boundaries
+```{r Get ward boundaries}
+ukgrid      <- "+init=epsg:27700"
+latlong     <- "+init=epsg:4326"
+
+authorities <- data.frame(authority_name = c('Waltham Forest'),
+                          stringsAsFactors = F)
+
+###  getting a geojson of UK wards from governmant data portal
+
+url                 <- 'https://opendata.arcgis.com/datasets/d5c9c1d89a5a44e9a7f88f182ffe5ba2_2.geojson'
+wards               <- readOGR(dsn = url, layer = "d5c9c1d89a5a44e9a7f88f182ffe5ba2_2")
+wards               <- spTransform(wards, ukgrid)
+wards               <- wards[wards$lad16nm %in% authorities$authority_name,]
+
+```
+
+Import the air quality files
+```{r import airquality}
+
+no2_2013_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2013/ASCII/PostLAEI_2013_WFSpeedUpdate_NO2.asc')
+pm25_2013_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2013/ASCII/PostLAEI_2013_WFSpeedUpdate_PM25.asc')
+
+```
+
+Check rasters
+```{r check rasters}
+plot(no2_2013_raster)
+plot(wards, add=T)
+title('NO2')
+
+plot(pm25_2013_raster)
+plot(wards, add=T)
+title('PM25')
+```
+
+Crop the rasters and check they look ok
+```{r crop rasters}
+wards_extent      <- extent(st_bbox(wards)$xmin-40, st_bbox(wards)$xmax+40, 
+                      st_bbox(wards)$ymin-40, st_bbox(wards)$ymax+40)
+no2_2013_raster   <- crop(no2_2013_raster, wards_extent)
+pm25_2013_raster  <- crop(pm25_2013_raster, wards_extent)
+
+plot(no2_2013_raster)
+plot(wards, add=T)
+title('NO2')
+
+plot(pm25_2013_raster)
+plot(wards, add=T)
+title('PM25')
+
+```
+
+Extract the concentrations per ward
+```{r get means by ward, warning=F}
+
+wards$mean_no2    <- extract(no2_2013_raster, wards, fun=mean)
+wards$mean_pm25   <- extract(pm25_2013_raster, wards, fun=mean)
+```
+
+Prep work for pltting
+```{r make some plots}
+wards             <- st_as_sf(wards)
+
+wards$wd16nm       <- as.character(wards$wd16nm)
+wards$id          <- 1:nrow(wards)
+ward_centroids    <- data.frame(id = as.character(wards$id),
+                                  name = as.character(wards$wd16nm),
+                                  st_coordinates(st_centroid(wards)))
+names(ward_centroids)[3:4] <- c('x','y') 
+```
+
+The wards
+```{r map of wards}
+ggplot(wards, aes(colour = wd16nm)) +
+  geom_sf() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.background = element_rect(size=0.2, linetype="solid", colour ="black")) +
+  scale_colour_manual(values = rep('black', 20), name = 'Ward name', labels = paste(1:20, wards$wd16nm)) +
+  geom_text(data = ward_centroids, aes(x, y, label = id), colour='black')
+```
+
+Mean PM2.5 concentrations
+```{r pm25 ward map}
+ggplot(wards) +
+  geom_sf(aes(fill=mean_pm25)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
+```
+
+Mean NO2 concentrations
+```{r no2 ward map}
+ggplot(wards) +
+  geom_sf(aes(fill=mean_pm25)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
+```
+
+Write concentrations to a CSV
+```{r output to a CSV}
+st_geometry(wards) <- NULL
+write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2', 'mean_pm25')]), 'wf_ward_concs.csv', row.names = F)
+```
+
+[Download CSV from here]()
