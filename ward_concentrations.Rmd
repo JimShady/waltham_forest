@@ -110,10 +110,10 @@ ggplot(wards, aes(colour = wd16nm)) +
   geom_text(data = ward_centroids, aes(x, y, label = id), colour='black')
 ```
 
-Mean PM2.5 concentrations
-```{r pm25 ward map}
+Mean NO2 concentrations
+```{r no2 ward map}
 ggplot(wards) +
-  geom_sf(aes(fill=mean_pm25)) +
+  geom_sf(aes(fill=mean_no2)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
@@ -121,8 +121,8 @@ ggplot(wards) +
         legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
 ```
 
-Mean NO2 concentrations
-```{r no2 ward map}
+Mean PM2.5 concentrations
+```{r PM2.5 ward map}
 ggplot(wards) +
   geom_sf(aes(fill=mean_pm25)) +
   theme(axis.text = element_blank(),
@@ -138,4 +138,4 @@ st_geometry(wards) <- NULL
 write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2', 'mean_pm25')]), 'wf_ward_concs.csv', row.names = F)
 ```
 
-[Download CSV from here]()
+[Download final CSV from here](https://raw.githubusercontent.com/JimShady/waltham_forest/master/wf_ward_concs.csv)
