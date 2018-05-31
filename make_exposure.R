@@ -15,7 +15,10 @@ exposure_routes <- read.csv('exposure_journeys.csv',
 
 exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
+## Just do a few while testing
 exposure_routes <- exposure_routes[exposure_routes$name == 'chingford_to_chingford_police',]
+
+start_time        <- Sys.time() + 1000
 
 for (i in 1:nrow(exposure_routes)) {
 #  for (i in 1:3) {
@@ -27,7 +30,6 @@ if (!is.na(exposure_routes[i,]$via_array)) {via_array         <- as.list(strspli
 end_lat           <- exposure_routes[i,]$end_lat
 end_lon           <- exposure_routes[i,]$end_lon
 mode              <- as.character(exposure_routes[i,]$mode)
-start_time        <- Sys.time() + 1000
 seggregated       <- exposure_routes[i,]$seggregated
 
 ## take account of where in the road the journey is taking place
@@ -114,7 +116,7 @@ if ('walk' %in% mode) {
 
 coordinates(result) <- ~lon + lat
 proj4string(result) = CRS(latlong)
-result <- spTransform(result, ukgrid)
+result <- spTransform(result, ukgrid) # identical up to here.
 
 ## This makes a spatialline from the points for the result
 x <- lapply(split(result, result$id), function(x) Lines(list(Line(coordinates(x))), result$id[1L]))
@@ -123,7 +125,7 @@ data <- data.frame(id = unique(result$id))
 rownames(data) <- data$id
 result <- SpatialLinesDataFrame(lines, data)
 proj4string(result) = CRS(ukgrid)
-rm(x, lines, data)
+rm(x, lines, data) # identical up to here.
 
 
 ## How many minutes long was the bicycle and walk journeys
@@ -132,9 +134,14 @@ timeslots                <- data.frame(id = unique(result$id), time = seq.POSIXt
 
 ## Now want to split the line into a point per minute
 
-result                   <- data.frame(spsample(result, 
-                                                nrow(timeslots),
-                                                type="regular"))
+result                   <- st_as_sf(result)
+
+result                   <- st_line_sample(result, n = nrow(timeslots), type = 'regular')
+result                   <- 
+result                   <- as(result, 'Spatial')
+result                   <- data.frame(result)
+  
+## NEED TO CHECK COORDIANTE STUFF. THINK GOING WRONG. ALSO THAT GET SAME RESULTS>
 
 ## Now some harmonisation stuff to get the car, walk and bus all the same format so can join them together
 result$id                 <- exposure_routes[i,]$journey_id
@@ -254,7 +261,7 @@ rm(wf_2021_no2_s, wf_2021_nox_s, wf_2021_pm10_s, wf_2021_pm25_s,nox, no2, pm25, 
 
 if (i == 1) {final_result <- result} else {final_result <- rbind.SpatialPointsDataFrame(final_result, result)}
 
-rm(timeslots, duration, start_time, result)
+rm(timeslots, duration, result)
 
 }
 
@@ -273,7 +280,7 @@ rm(i, google_projected, latlong, mode, p, seggregated, ukgrid)
 
 
 
-aggregate(concentration ~ name + mode + scheme + year + pollutant, data=final_result, FUN=mean)
+summary_results <- aggregate(concentration ~ name + mode + scheme + year + pollutant, data=final_result, FUN=mean)
 
 plot(extent(final_result) * 1.1)
 
