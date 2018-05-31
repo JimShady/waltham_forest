@@ -33,7 +33,7 @@ if (json_data$status == 'OK') {
     
   rm(json_data, google_api_key)
   
-  print(paste("Walk routing was completed using Google Directions API"))
+  #print(paste("Walk routing was completed using Google Directions API"))
   } else {
       print(paste("Routing failed"))
 }

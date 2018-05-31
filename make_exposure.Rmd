@@ -1,3 +1,17 @@
+---
+title: "Walking and cycling exposure in Walthamstow: 2013 v. 2021"
+author: "James Smith"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+date: "`r format(Sys.time(), '%Y-%m%-%d %H%:%M')`"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="exposure.html") })
+---
+
+Load libraries
+```{r setup, include = F}
 rm(list = ls())
 
 ## Load libraries
@@ -9,11 +23,21 @@ library('ggplot2')
 library('geosphere')
 library('sf')
 library('reshape2')
+```
+
+Import routes
+
+```{r import routes}
 
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
 
 exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
+```
+
+Make a loop to calculate the routes and extract the concentrations. If seggregated==true, then the route is offset by the variable 'offset'
+
+```{r start a loop}
 
 start_time        <- Sys.time() + 1000
 
@@ -22,7 +46,9 @@ for (i in 1:nrow(exposure_routes)) {
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
 start_lon         <- exposure_routes[i,]$start_lon
-if (!is.na(exposure_routes[i,]$via_array)) {via_array         <- as.list(strsplit(as.character(exposure_routes[i,]$via_array), ";")[[1]]) } else {via_array <- NA}
+
+if (!is.na(exposure_routes[i,]$via_array)) {via_array <- as.list(strsplit(as.character(exposure_routes[i,]$via_array), ";")[[1]]) } else {via_array <- NA}
+
 end_lat           <- exposure_routes[i,]$end_lat
 end_lon           <- exposure_routes[i,]$end_lon
 mode              <- as.character(exposure_routes[i,]$mode)
@@ -44,7 +70,7 @@ google_projected        <- "+init=epsg:3857 +proj=merc +a=6378137 +b=6378137 +la
 if ('walk' %in% mode)     { source("routing/walking.R") }
 if ('bicycle' %in% mode)  { source("routing/cycling.R") }
 
-rm(start_lat, start_lon, end_lat, end_lon, via_array)
+rm(start_lat, start_lon, end_lat, end_lon)
 
 if ('walk' %in% mode) {
   result <- walk_result
@@ -259,19 +285,29 @@ rm(wf_2021_no2_s, wf_2021_nox_s, wf_2021_pm10_s, wf_2021_pm25_s,nox, no2, pm25, 
 
 if (i == 1) {final_result <- result} else {final_result <- rbind.SpatialPointsDataFrame(final_result, result)}
 
-rm(timeslots, duration, result)
+rm(timeslots, duration, result, via_array)
 
 }
+```
+
+Bind the results we've made together with the original parameter data, and delete some variables that aren't needed anymore
+
+```{r bind results}
 
 final_result$time <- NULL
 final_result$line <- NULL
 final_result      <- merge(final_result, exposure_routes[,c('journey_id', 'name', 'seggregated')], by.x = 'id', by.y = 'journey_id')
-rm(i, google_projected, latlong, mode, p, seggregated, ukgrid)
+rm(i, google_projected, latlong, mode, seggregated, ukgrid)
+```
 
-#####################
+```{r aggregate results}
 
 summary_results <- aggregate(concentration ~ name + mode + scheme + year + pollutant + seggregated, data=final_result, FUN=mean)
 
+summary_results
+```
+
+```{r make plots}
 plot <- list()
 
 for (i in 1:length(unique(final_result$name))) {
@@ -284,5 +320,5 @@ for (i in 1:length(unique(final_result$name))) {
     xlab('Year')
 
 }
-
+```
 
