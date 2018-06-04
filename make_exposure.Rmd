@@ -41,7 +41,8 @@ Make a loop to calculate the routes and extract the concentrations. If seggregat
 
 start_time        <- Sys.time() + 1000
 
-for (i in 1:nrow(exposure_routes)) {
+#for (i in 1:nrow(exposure_routes)) {
+  for (i in 1:1) {
 
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
@@ -163,7 +164,7 @@ timeslots                <- data.frame(id = unique(result$id), time = seq.POSIXt
 result                   <- st_as_sf(result)
 
 result                   <- st_line_sample(result, n = nrow(timeslots), type = 'regular')
-result                   <- st_set_crs(result, 27700)
+result                   <- suppressWarnings(st_set_crs(result, 27700))
 result                   <- data.frame(as(result, 'Spatial'))
 
 ## Now some harmonisation stuff to get the car, walk and bus all the same format so can join them together
@@ -306,4 +307,6 @@ for (i in 1:length(unique(final_result$name))) {
 
 Example 1 - Chingford to Leyton
 
-```{}
+```{r chingford_to_leyon}
+plot[[1]]
+```
