@@ -37,7 +37,7 @@ exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
 Make a loop to calculate the routes and extract the concentrations. If seggregated==true, then the route is offset by the variable 'offset'
 
-```{r start a loop}
+```{r start_loop}
 
 start_time        <- Sys.time() + 1000
 
