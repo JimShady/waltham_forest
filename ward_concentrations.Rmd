@@ -20,6 +20,7 @@ library(stringr)
 library(raster)
 library(rgdal)
 library(rgeos)
+devtools::install_github("tidyverse/ggplot2")
 library(ggplot2)
 library(sf)
 library(rmarkdown)
@@ -48,41 +49,66 @@ Import the air quality files
 no2_2013_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2013/ASCII/PostLAEI_2013_WFSpeedUpdate_NO2.asc')
 pm25_2013_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2013/ASCII/PostLAEI_2013_WFSpeedUpdate_PM25.asc')
 
+no2_2020_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2020/ASCII/no2_2020.asc')
+pm25_2020_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2020/ASCII/pm25_2020.asc')
+
 ```
 
 Check rasters
 ```{r check rasters}
 plot(no2_2013_raster)
 plot(wards, add=T)
-title('NO2')
+title('2013 NO2')
 
 plot(pm25_2013_raster)
 plot(wards, add=T)
-title('PM25')
+title('2013 PM25')
+
+plot(no2_2020_raster)
+plot(wards, add=T)
+title('2020 NO2')
+
+plot(pm25_2020_raster)
+plot(wards, add=T)
+title('2020 PM25')
 ```
 
 Crop the rasters and check they look ok
 ```{r crop rasters}
 wards_extent      <- extent(st_bbox(wards)$xmin-40, st_bbox(wards)$xmax+40, 
                       st_bbox(wards)$ymin-40, st_bbox(wards)$ymax+40)
+
 no2_2013_raster   <- crop(no2_2013_raster, wards_extent)
 pm25_2013_raster  <- crop(pm25_2013_raster, wards_extent)
+no2_2020_raster   <- crop(no2_2020_raster, wards_extent)
+pm25_2020_raster  <- crop(pm25_2020_raster, wards_extent)
 
 plot(no2_2013_raster)
 plot(wards, add=T)
-title('NO2')
+title('2013 NO2')
 
 plot(pm25_2013_raster)
 plot(wards, add=T)
-title('PM25')
+title('2013 PM25')
+
+plot(no2_2020_raster)
+plot(wards, add=T)
+title('2020 NO2')
+
+plot(pm25_2020_raster)
+plot(wards, add=T)
+title('2020 PM25')
 
 ```
 
 Extract the concentrations per ward
 ```{r get means by ward, warning=F}
 
-wards$mean_no2    <- extract(no2_2013_raster, wards, fun=mean)
-wards$mean_pm25   <- extract(pm25_2013_raster, wards, fun=mean)
+wards$mean_no2_2013    <- extract(no2_2013_raster, wards, fun=mean)
+wards$mean_pm25_2013   <- extract(pm25_2013_raster, wards, fun=mean)
+
+wards$mean_no2_2020    <- extract(no2_2020_raster, wards, fun=mean)
+wards$mean_pm25_2020   <- extract(pm25_2020_raster, wards, fun=mean)
 ```
 
 Prep work for pltting
@@ -110,10 +136,10 @@ ggplot(wards, aes(colour = wd16nm)) +
   geom_text(data = ward_centroids, aes(x, y, label = id), colour='black')
 ```
 
-Mean NO2 concentrations
-```{r no2 ward map}
+Mean 2013 NO2 concentrations
+```{r no2_2013_ward_map}
 ggplot(wards) +
-  geom_sf(aes(fill=mean_no2)) +
+  geom_sf(aes(fill=mean_no2_2013)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
@@ -121,10 +147,32 @@ ggplot(wards) +
         legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
 ```
 
-Mean PM2.5 concentrations
-```{r PM2.5 ward map}
+Mean 2020 PM2.5 concentrations
+```{r pm25_2013_ward_map}
 ggplot(wards) +
-  geom_sf(aes(fill=mean_pm25)) +
+  geom_sf(aes(fill=mean_pm25_2013)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
+```
+
+Mean 2013 NO2 concentrations
+```{r no2_2020_ward_map}
+ggplot(wards) +
+  geom_sf(aes(fill=mean_no2_2020)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
+```
+
+Mean 2020 PM2.5 concentrations
+```{r pm25_2020_ward_map}
+ggplot(wards) +
+  geom_sf(aes(fill=mean_pm25_2020)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
@@ -135,7 +183,7 @@ ggplot(wards) +
 Write concentrations to a CSV
 ```{r output to a CSV}
 st_geometry(wards) <- NULL
-write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2', 'mean_pm25')]), 'wf_ward_concs.csv', row.names = F)
+write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2_2013', 'mean_pm25_2013', 'mean_no2_2020', 'mean_pm25_2020')]), 'wf_ward_concs.csv', row.names = F)
 ```
 
 [Download final CSV from here](https://raw.githubusercontent.com/JimShady/waltham_forest/master/wf_ward_concs.csv)

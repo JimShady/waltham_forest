@@ -27,7 +27,7 @@ library('reshape2')
 
 Import routes
 
-```{r import routes}
+```{r import_routes}
 
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
@@ -37,7 +37,7 @@ exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 
 Make a loop to calculate the routes and extract the concentrations. If seggregated==true, then the route is offset by the variable 'offset'
 
-```{r start_loop}
+```{r start_loop, message=F, warning=F}
 
 start_time        <- Sys.time() + 1000
 
@@ -173,7 +173,6 @@ result$line               <- NA
 result                    <- cbind(result, timeslots)
 names(result)             <- c('easting', 'northing', 'id', 'mode', 'line', 'id_2', 'time')
 result                    <- result[,c('id', 'mode', 'line', 'time', 'easting', 'northing')]
-result$scheme             <- exposure_routes[i,]$scheme
 result$year               <- exposure_routes[i,]$year
 coordinates(result)       <- ~easting + northing
 proj4string(result)       <- CRS(ukgrid)
@@ -194,19 +193,19 @@ crs(wf_2013_pm25)        <- CRS(ukgrid)
 # Extract concentrations
 no2                                   <- result
 no2@data$pollutant                    <- 'no2'
-no2@data$concentration                <- extract(wf_2013_no2, no2@coords)
+no2@data$concentration                <- extract(wf_2013_no2, no2@coords, method = 'bilinear')
 
 pm25                                  <- result
 pm25@data$pollutant                   <- 'pm25'
-pm25@data$concentration               <- extract(wf_2013_pm25, pm25@coords)
+pm25@data$concentration               <- extract(wf_2013_pm25, pm25@coords, method = 'bilinear')
 
 pm10                                  <- result
 pm10@data$pollutant                   <- 'pm10'
-pm10@data$concentration               <- extract(wf_2013_pm10, pm10@coords)
+pm10@data$concentration               <- extract(wf_2013_pm10, pm10@coords, method = 'bilinear')
 
 nox                                   <- result
 nox@data$pollutant                    <- 'nox'
-nox@data$concentration                <- extract(wf_2013_nox, nox@coords)
+nox@data$concentration                <- extract(wf_2013_nox, nox@coords, method = 'bilinear')
 
 result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
 
@@ -214,72 +213,37 @@ rm(wf_2013_no2, wf_2013_nox, wf_2013_pm10, wf_2013_pm25,nox, no2, pm25, pm10)
 
 }
 
-## 2021 concentration maps without schemes
-if (exposure_routes[i,]$year == 2021 & exposure_routes[i,]$scheme == 'none') {
-wf_2021_no2              <- raster('air_quality/no2_2021.asc')
-crs(wf_2021_no2)         <- CRS(ukgrid)
-wf_2021_nox              <- raster('air_quality/nox_2021.asc')
-crs(wf_2021_nox)         <- CRS(ukgrid)
-wf_2021_pm10             <- raster('air_quality/pm10_2021.asc')
-crs(wf_2021_pm10)        <- CRS(ukgrid)
-wf_2021_pm25             <- raster('air_quality/pm25_2021.asc')
-crs(wf_2021_pm25)        <- CRS(ukgrid)
-
-
-# Extract concentrations
-no2                                   <- result
-no2@data$pollutant                    <- 'no2'
-no2@data$concentration                <- extract(wf_2021_no2, no2@coords)
-
-pm25                                  <- result
-pm25@data$pollutant                   <- 'pm25'
-pm25@data$concentration               <- extract(wf_2021_pm25, pm25@coords)
-
-pm10                                  <- result
-pm10@data$pollutant                   <- 'pm10'
-pm10@data$concentration               <- extract(wf_2021_pm10, pm10@coords)
-
-nox                                   <- result
-nox@data$pollutant                    <- 'nox'
-nox@data$concentration                <- extract(wf_2021_nox, nox@coords)
-
-result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
-
-rm(wf_2021_no2, wf_2021_nox, wf_2021_pm10, wf_2021_pm25,nox, no2, pm25, pm10)
-
-}
-
-## 2021 concentration maps with schemes
-if (exposure_routes[i,]$year == 2021 & exposure_routes[i,]$scheme == 'implemented') {
-wf_2021_no2_s            <- raster('air_quality/no2_2021_s.asc')
-crs(wf_2021_no2_s)       <- CRS(ukgrid)
-wf_2021_nox_s            <- raster('air_quality/nox_2021_s.asc')
-crs(wf_2021_nox_s)       <- CRS(ukgrid)
-wf_2021_pm10_s           <- raster('air_quality/pm10_2021_s.asc')
-crs(wf_2021_pm10_s)      <- CRS(ukgrid)
-wf_2021_pm25_s           <- raster('air_quality/pm25_2021_s.asc')
-crs(wf_2021_pm25_s)      <- CRS(ukgrid)
+## 2020 concentration maps 
+if (exposure_routes[i,]$year == 2020) {
+wf_2020_no2              <- raster('air_quality/no2_2020.asc')
+crs(wf_2020_no2)         <- CRS(ukgrid)
+wf_2020_nox              <- raster('air_quality/nox_2020.asc')
+crs(wf_2020_nox)         <- CRS(ukgrid)
+wf_2020_pm10             <- raster('air_quality/pm10_2020.asc')
+crs(wf_2020_pm10)        <- CRS(ukgrid)
+wf_2020_pm25             <- raster('air_quality/pm25_2020.asc')
+crs(wf_2020_pm25)        <- CRS(ukgrid)
 
 # Extract concentrations
 no2                                   <- result
 no2@data$pollutant                    <- 'no2'
-no2@data$concentration                <- extract(wf_2021_no2_s, no2@coords)
+no2@data$concentration                <- extract(wf_2020_no2, no2@coords, method = 'bilinear')
 
 pm25                                  <- result
 pm25@data$pollutant                   <- 'pm25'
-pm25@data$concentration               <- extract(wf_2021_pm25_s, pm25@coords)
+pm25@data$concentration               <- extract(wf_2020_pm25, pm25@coords, method = 'bilinear')
 
 pm10                                  <- result
 pm10@data$pollutant                   <- 'pm10'
-pm10@data$concentration               <- extract(wf_2021_pm10_s, pm10@coords)
+pm10@data$concentration               <- extract(wf_2020_pm10, pm10@coords, method = 'bilinear')
 
 nox                                   <- result
 nox@data$pollutant                    <- 'nox'
-nox@data$concentration                <- extract(wf_2021_nox_s, nox@coords)
+nox@data$concentration                <- extract(wf_2020_nox, nox@coords, method = 'bilinear')
 
 result                                <- rbind.SpatialPointsDataFrame(no2, pm25, nox, pm10)
 
-rm(wf_2021_no2_s, wf_2021_nox_s, wf_2021_pm10_s, wf_2021_pm25_s,nox, no2, pm25, pm10)
+rm(wf_2020_no2, wf_2020_nox, wf_2020_pm10, wf_2020_pm25,nox, no2, pm25, pm10)
 
 }
 
@@ -292,7 +256,7 @@ rm(timeslots, duration, result, via_array)
 
 Bind the results we've made together with the original parameter data, and delete some variables that aren't needed anymore
 
-```{r bind results}
+```{r bind_results}
 
 final_result$time <- NULL
 final_result$line <- NULL
@@ -300,25 +264,46 @@ final_result      <- merge(final_result, exposure_routes[,c('journey_id', 'name'
 rm(i, google_projected, latlong, mode, seggregated, ukgrid)
 ```
 
-```{r aggregate results}
+The summary of the routes and years are shown.
 
-summary_results <- aggregate(concentration ~ name + mode + scheme + year + pollutant + seggregated, data=final_result, FUN=mean)
+```{r aggregate_results}
+
+summary_results <- aggregate(concentration ~ name + mode + year + pollutant + seggregated, data=final_result, FUN=mean)
 
 summary_results
 ```
 
-```{r make plots}
+Now make some plots of the results
+```{r make_plots}
 plot <- list()
 
 for (i in 1:length(unique(final_result$name))) {
   
-  scheme_name <- unique(final_result$name)[i]
+  route_name <- unique(final_result$name)[i]
   
-  plot[[i]] <- ggplot(final_result[final_result$name == scheme_name,]@data, aes(x = as.factor(year), y = concentration, fill = scheme)) +
+  plot[[i]] <- ggplot(final_result[final_result$name == route_name,]@data, 
+                      aes(x = as.factor(year), y = concentration, fill = seggregated)) +
     geom_boxplot() +
     facet_wrap(name~pollutant, ncol = 4, scales = 'free_y') +
-    xlab('Year')
+    xlab('Year') +
+    theme(plot.subtitle = element_text(vjust = 1), 
+    plot.caption = element_text(vjust = 1), 
+    panel.grid.major = element_line(colour = "gray92"), 
+    panel.grid.minor = element_line(colour = "gray92"), 
+    axis.title = element_text(size = 18), 
+    axis.text = element_text(size = 17, colour = "black"), 
+    axis.text.y = element_text(size = 17), 
+    plot.title = element_text(size = 17), 
+    legend.title = element_text(size = 13), 
+    panel.background = element_rect(fill = NA, 
+        colour = "black", linetype = "solid"), 
+    plot.background = element_rect(colour = NA),
+    strip.text.x = element_text(size = 17),
+    strip.background = element_blank())
 
 }
 ```
 
+Example 1 - Chingford to Leyton
+
+```{}
