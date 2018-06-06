@@ -33,6 +33,8 @@ library('reshape2')
 library('leaflet')
 library('mapview')
 library('kableExtra')
+
+## rmarkdown::render('make_exposure.Rmd', output_dir = "docs", output_file ="exposure.html")
 ```
 
 ### Data import
@@ -289,7 +291,7 @@ summary_results <- aggregate(concentration ~ name + mode + year + pollutant + se
 
 names(summary_results) <- c('Route', 'Mode', 'Year', 'Pollutant', 'Seggregated', 'Mean Exposure (ug/m3)')
 
-summary_results[order(summary_results$Route, summary_results$Year),] %>% kable(row.names = NA) %>% kable_styling()
+summary_results[order(summary_results$Route, summary_results$Pollutant, summary_results$Year),] %>% kable(row.names = F) %>% kable_styling()
 ```
 
 
