@@ -10,6 +10,10 @@ knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="exposure.html") })
 ---
 
+this document descibes the process of calcualting walking and cycling exposure for a number of typical routes within the London Borough of Waltham Forest.
+
+### Preparation
+
 Load libraries
 ```{r setup, include = F}
 rm(list = ls())
@@ -23,7 +27,11 @@ library('ggplot2')
 library('geosphere')
 library('sf')
 library('reshape2')
+library('leaflet')
+library('mapview')
 ```
+
+### Data import
 
 Import routes
 
@@ -35,14 +43,15 @@ exposure_routes <- read.csv('exposure_journeys.csv',
 exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
 ```
 
+### Route calculation, offest, and exposure calculation
+
 Make a loop to calculate the routes and extract the concentrations. If seggregated==true, then the route is offset by the variable 'offset'
 
 ```{r start_loop, message=F, warning=F}
 
 start_time        <- Sys.time() + 1000
 
-#for (i in 1:nrow(exposure_routes)) {
-  for (i in 1:1) {
+for (i in 1:nrow(exposure_routes)) {
 
 # Journey parameters
 start_lat         <- exposure_routes[i,]$start_lat
@@ -265,6 +274,8 @@ final_result      <- merge(final_result, exposure_routes[,c('journey_id', 'name'
 rm(i, google_projected, latlong, mode, seggregated, ukgrid)
 ```
 
+### Results
+
 The summary of the routes and years are shown.
 
 ```{r aggregate_results}
@@ -275,6 +286,7 @@ summary_results
 ```
 
 Now make some plots of the results
+
 ```{r make_plots}
 plot <- list()
 
@@ -291,22 +303,44 @@ for (i in 1:length(unique(final_result$name))) {
     plot.caption = element_text(vjust = 1), 
     panel.grid.major = element_line(colour = "gray92"), 
     panel.grid.minor = element_line(colour = "gray92"), 
-    axis.title = element_text(size = 18), 
-    axis.text = element_text(size = 17, colour = "black"), 
-    axis.text.y = element_text(size = 17), 
-    plot.title = element_text(size = 17), 
+    axis.title = element_text(size = 14), 
+    axis.text = element_text(size = 14, colour = "black"), 
+    axis.text.y = element_text(size = 14), 
+    plot.title = element_text(size = 14), 
     legend.title = element_text(size = 13), 
     panel.background = element_rect(fill = NA, 
         colour = "black", linetype = "solid"), 
     plot.background = element_rect(colour = NA),
-    strip.text.x = element_text(size = 17),
+    strip.text.x = element_text(size = 8),
     strip.background = element_blank())
 
 }
 ```
 
-Example 1 - Chingford to Leyton
+Example 1 - Chingford to Leyton (Concentration plots)
 
-```{r chingford_to_leyon}
+```{r chingford_to_leyon_concs}
 plot[[1]]
+```
+
+Example 1 - Chingford to Leyton (Spatial plots)
+
+```{r chingford_to_leyon_spatial}
+
+final_result <- st_as_sf(final_result)
+final_result <- st_set_crs(final_result, 27700)
+final_result <- st_transform(final_result, 4326)
+
+example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'chingford_to_leyton' & final_result$year == 2013,]
+
+example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'chingford_to_leyton' & final_result$year == 2020 & final_result$seggregated == 'yes',]
+
+qpal <- colorQuantile("YlOrRd", c(example_2013$concentration, example_2020$concentration), n = 7)
+
+leaflet()%>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2013, group = '2013', fillColor = qpal(example_2013$concentration), color="transparent", fillOpacity = 0.7, label = example_2013$concentration) %>%
+  addFeatures(example_2020, group = '2020', fillColor = qpal(example_2020$concentration), color="transparent", fillOpacity = 0.7, label = example_2020$concentration) %>%
+  addLayersControl(baseGroups = c('2013', '2020'))
+
 ```

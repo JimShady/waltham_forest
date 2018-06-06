@@ -10,6 +10,9 @@ knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="ward_concentrations.html") })
 ---
 
+This document outlines the creation of calculating mean Ward-level concentrations for the [London Borough of Waltham Forest](https://walthamforest.gov.uk/). The air quality input files are based upon data from the [LAEI 2013](https://data.london.gov.uk/dataset/london-atmospheric-emissions-inventory-2013), updated with new speed data provided by the Borough, and forward-cast to 2020.
+
+### Set-up
 ```{r setup, include=FALSE}
 rm(list=ls())
 
@@ -26,7 +29,10 @@ library(sf)
 library(rmarkdown)
 ```
 
+### Data importing
+
 Get the ward boundaries
+
 ```{r Get ward boundaries}
 ukgrid      <- "+init=epsg:27700"
 latlong     <- "+init=epsg:4326"
@@ -44,6 +50,7 @@ wards               <- wards[wards$lad16nm %in% authorities$authority_name,]
 ```
 
 Import the air quality files
+
 ```{r import airquality}
 
 no2_2013_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/2013/ASCII/PostLAEI_2013_WFSpeedUpdate_NO2.asc')
@@ -55,6 +62,7 @@ pm25_2020_raster <- raster('T:/Projects/WalthamForest/Modelling/PostLAEI2013_WF/
 ```
 
 Check rasters
+
 ```{r check rasters}
 plot(no2_2013_raster)
 plot(wards, add=T)
@@ -73,7 +81,10 @@ plot(wards, add=T)
 title('2020 PM25')
 ```
 
+### Data processing
+
 Crop the rasters and check they look ok
+
 ```{r crop rasters}
 wards_extent      <- extent(st_bbox(wards)$xmin-40, st_bbox(wards)$xmax+40, 
                       st_bbox(wards)$ymin-40, st_bbox(wards)$ymax+40)
@@ -102,6 +113,7 @@ title('2020 PM25')
 ```
 
 Extract the concentrations per ward
+
 ```{r get means by ward, warning=F}
 
 wards$mean_no2_2013    <- extract(no2_2013_raster, wards, fun=mean)
@@ -111,7 +123,8 @@ wards$mean_no2_2020    <- extract(no2_2020_raster, wards, fun=mean)
 wards$mean_pm25_2020   <- extract(pm25_2020_raster, wards, fun=mean)
 ```
 
-Prep work for pltting
+Prep work for plotting
+
 ```{r make some plots}
 wards             <- st_as_sf(wards)
 
@@ -123,7 +136,10 @@ ward_centroids    <- data.frame(id = as.character(wards$id),
 names(ward_centroids)[3:4] <- c('x','y') 
 ```
 
+### Mapping 
+
 The wards
+
 ```{r map of wards}
 ggplot(wards, aes(colour = wd16nm)) +
   geom_sf() +
@@ -137,6 +153,7 @@ ggplot(wards, aes(colour = wd16nm)) +
 ```
 
 Mean 2013 NO2 concentrations
+
 ```{r no2_2013_ward_map}
 ggplot(wards) +
   geom_sf(aes(fill=mean_no2_2013)) +
@@ -148,6 +165,7 @@ ggplot(wards) +
 ```
 
 Mean 2020 PM2.5 concentrations
+
 ```{r pm25_2013_ward_map}
 ggplot(wards) +
   geom_sf(aes(fill=mean_pm25_2013)) +
@@ -159,6 +177,7 @@ ggplot(wards) +
 ```
 
 Mean 2013 NO2 concentrations
+
 ```{r no2_2020_ward_map}
 ggplot(wards) +
   geom_sf(aes(fill=mean_no2_2020)) +
@@ -170,6 +189,7 @@ ggplot(wards) +
 ```
 
 Mean 2020 PM2.5 concentrations
+
 ```{r pm25_2020_ward_map}
 ggplot(wards) +
   geom_sf(aes(fill=mean_pm25_2020)) +
@@ -180,7 +200,10 @@ ggplot(wards) +
         legend.background = element_rect(size=0.2, linetype="solid", colour ="black"))
 ```
 
+### data output
+
 Write concentrations to a CSV
+
 ```{r output to a CSV}
 st_geometry(wards) <- NULL
 write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2_2013', 'mean_pm25_2013', 'mean_no2_2020', 'mean_pm25_2020')]), 'wf_ward_concs.csv', row.names = F)
