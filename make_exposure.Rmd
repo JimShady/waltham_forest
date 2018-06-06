@@ -1,8 +1,9 @@
 ---
-title: "Walking and cycling exposure in Walthamstow: 2013 v. 2021"
+title: "Walking & cycling exposure in Walthamstow: 2013 v. 2021"
 author: "James Smith"
 output:
   html_document:
+    float: true
     toc: true
     toc_depth: 4
 date: "`r format(Sys.time(), '%Y-%m%-%d %H%:%M')`"
@@ -15,10 +16,11 @@ this document descibes the process of calcualting walking and cycling exposure f
 ### Preparation
 
 Load libraries
-```{r setup, include = F}
+```{r setup}
 rm(list = ls())
 
 ## Load libraries
+library('knitr')
 library("googleway")
 library("gepaf")
 library("sp")
@@ -29,6 +31,7 @@ library('sf')
 library('reshape2')
 library('leaflet')
 library('mapview')
+library('kableExtra')
 ```
 
 ### Data import
@@ -40,7 +43,7 @@ Import routes
 exposure_routes <- read.csv('exposure_journeys.csv',
                             stringsAsFactors = F)
 
-exposure_routes[exposure_routes$via_array == '',]$via_array <- NA
+exposure_routes[exposure_routes$via_array == '','via_array'] <- NA
 ```
 
 ### Route calculation, offest, and exposure calculation
@@ -50,6 +53,7 @@ Make a loop to calculate the routes and extract the concentrations. If seggregat
 ```{r start_loop, message=F, warning=F}
 
 start_time        <- Sys.time() + 1000
+via_array <- NA
 
 for (i in 1:nrow(exposure_routes)) {
 
@@ -282,8 +286,12 @@ The summary of the routes and years are shown.
 
 summary_results <- aggregate(concentration ~ name + mode + year + pollutant + seggregated, data=final_result, FUN=mean)
 
-summary_results
+names(summary_results) <- c('Route', 'Mode', 'Year', 'Pollutant', 'Seggregated', 'Mean Exposure (ug/m3)')
+
+summary_results[order(summary_results$Route, summary_results$Year),] %>% kable(row.names = NA) %>% kable_styling()
 ```
+
+
 
 Now make some plots of the results
 
@@ -331,16 +339,32 @@ final_result <- st_as_sf(final_result)
 final_result <- st_set_crs(final_result, 27700)
 final_result <- st_transform(final_result, 4326)
 
-example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'chingford_to_leyton' & final_result$year == 2013,]
+example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Chingford to Leyton' & final_result$year == 2013,]
 
-example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'chingford_to_leyton' & final_result$year == 2020 & final_result$seggregated == 'yes',]
+example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Chingford to Leyton' & final_result$year == 2020 & final_result$seggregated == 'yes',]
 
 qpal <- colorQuantile("YlOrRd", c(example_2013$concentration, example_2020$concentration), n = 7)
 
+qpal <- colorNumeric(
+  palette = c("green","yellow","orange","red"),
+  domain = c(example_2013$concentration, example_2020$concentration))
+
 leaflet()%>%
   addProviderTiles(providers$Esri.WorldTopoMap)%>%
-  addFeatures(example_2013, group = '2013', fillColor = qpal(example_2013$concentration), color="transparent", fillOpacity = 0.7, label = example_2013$concentration) %>%
-  addFeatures(example_2020, group = '2020', fillColor = qpal(example_2020$concentration), color="transparent", fillOpacity = 0.7, label = example_2020$concentration) %>%
-  addLayersControl(baseGroups = c('2013', '2020'))
+  addFeatures(example_2013,
+              group = '2013',
+              fillColor = qpal(example_2013$concentration),
+              color="transparent",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addFeatures(example_2020,
+              group = '2020',
+              fillColor = qpal(example_2020$concentration),
+              color="transparent",
+              fillOpacity = 0.7,
+              popup = paste0(as.character(round(example_2020$concentration,0)), ' µg/m<sup>3</sup>')) %>%
+  addLayersControl(baseGroups = c('2013', '2020')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)") %>%
+  addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Chingford <br> & Leyton has dropped by 24% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "topleft")
 
 ```

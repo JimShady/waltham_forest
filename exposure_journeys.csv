@@ -1,29 +1,29 @@
 journey_id,name,start_lat,start_lon,via_array,end_lat,end_lon,mode,year,seggregated
-1,chingford_to_leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2013,no
-2,lea_bridge_to_whipps_cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2013,no
-3,leyton_to_blackhorse,51.556455,-0.005722,,51.587089,-0.040727,bicycle,2013,no
-4,wood_street_to_blackhorse,51.586371,-0.002437,"51.5843583,-0.0123507;51.582676,-0.023713;51.582837,-0.029381",51.587089,-0.040727,bicycle,2013,no
-5,coppermill_to_wood_street,51.578777,-0.047251,,51.586371,-0.002437,bicycle,2013,no
-6,leytonstone_to_stratford_drapers,51.568202,0.008573,,51.551901,-0.004792,bicycle,2013,no
-7,leytonstone_to_lea_bridge_via_ruckolt,51.568202,0.008573,"51.557023,-0.011159",51.566811,-0.03659,bicycle,2013,no
-8,walthamstow_to_lea_bridge_via_selbourne_markhouse,51.583144,-0.019976,"51.574723,-0.029349",51.566811,-0.03659,walk,2013,no
-9,green_man_to_leytonstone_high_road_station,51.571866,0.015676,,51.563102,0.009551,walk,2013,no
-10,wood_street_to_waltham_town_hall,51.586371,-0.002437,,51.591037,-0.013479,walk,2013,no
-11,walthamstow_central_to_waltham_town_hall,51.583144,-0.019976,,51.591037,-0.013479,walk,2013,no
-12,chingford_to_chingford_police,51.633341,0.009371,,51.631757,-0.001342,walk,2013,no
-13,leyton_to_drapers_fields,51.556455,-0.005722,,51.551901,-0.004792,walk,2013,no
-14,chingford_to_leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2020,no
-15,lea_bridge_to_whipps_cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2020,no
-16,leyton_to_blackhorse,51.556455,-0.005722,,51.587089,-0.040727,bicycle,2020,no
-17,wood_street_to_blackhorse,51.586371,-0.002437,"51.5843583,-0.0123507;51.582676,-0.023713;51.582837,-0.029381",51.587089,-0.040727,bicycle,2020,no
-18,coppermill_to_wood_street,51.578777,-0.047251,,51.586371,-0.002437,bicycle,2020,no
-19,leytonstone_to_stratford_drapers,51.568202,0.008573,,51.551901,-0.004792,bicycle,2020,no
-20,leytonstone_to_lea_bridge_via_ruckolt,51.568202,0.008573,"51.557023,-0.011159",51.566811,-0.03659,bicycle,2020,no
-21,walthamstow_to_lea_bridge_via_selbourne_markhouse,51.583144,-0.019976,"51.574723,-0.029349",51.566811,-0.03659,walk,2020,no
-22,green_man_to_leytonstone_high_road_station,51.571866,0.015676,,51.563102,0.009551,walk,2020,no
-23,wood_street_to_waltham_town_hall,51.586371,-0.002437,,51.591037,-0.013479,walk,2020,no
-24,walthamstow_central_to_waltham_town_hall,51.583144,-0.019976,,51.591037,-0.013479,walk,2020,no
-25,chingford_to_chingford_police,51.633341,0.009371,,51.631757,-0.001342,walk,2020,no
-26,leyton_to_drapers_fields,51.556455,-0.005722,,51.551901,-0.004792,walk,2020,no
-27,chingford_to_leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2020,yes
-28,lea_bridge_to_whipps_cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2020,yes
+1,Chingford to Leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2013,no
+2,Lea Bridge to Whipps Cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2013,no
+3,Leyton to Blackhorse,51.556455,-0.005722,,51.587089,-0.040727,bicycle,2013,no
+4,Wood Street to Blackhorse,51.586371,-0.002437,"51.5843583,-0.0123507;51.582676,-0.023713;51.582837,-0.029381",51.587089,-0.040727,bicycle,2013,no
+5,Coppermill to Wood Street,51.578777,-0.047251,,51.586371,-0.002437,bicycle,2013,no
+6,Leytonstone to Stratford Drapers,51.568202,0.008573,,51.551901,-0.004792,bicycle,2013,no
+7,Leytonstone to Lea Bridge via Ruckolt,51.568202,0.008573,"51.557023,-0.011159",51.566811,-0.03659,bicycle,2013,no
+8,Walthamstow to Lea Bridge via Selbourne and Markhouse,51.583144,-0.019976,"51.574723,-0.029349",51.566811,-0.03659,walk,2013,no
+9,Green Man Roundabout to Leytonstone High Road Station,51.571866,0.015676,,51.563102,0.009551,walk,2013,no
+10,Wood Street to Waltham Town Hall,51.586371,-0.002437,,51.591037,-0.013479,walk,2013,no
+11,Walthamstow Central to W altham Town Hall,51.583144,-0.019976,,51.591037,-0.013479,walk,2013,no
+12,Chingford to Chingford Police,51.633341,0.009371,,51.631757,-0.001342,walk,2013,no
+13,Leyton to Drapers Fields,51.556455,-0.005722,,51.551901,-0.004792,walk,2013,no
+14,Chingford to Leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2020,no
+15,Lea Bridge to Whipps Cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2020,no
+16,Leyton to Blackhorse,51.556455,-0.005722,,51.587089,-0.040727,bicycle,2020,no
+17,Wood Street to Blackhorse,51.586371,-0.002437,"51.5843583,-0.0123507;51.582676,-0.023713;51.582837,-0.029381",51.587089,-0.040727,bicycle,2020,no
+18,Coppermill to Wood Street,51.578777,-0.047251,,51.586371,-0.002437,bicycle,2020,no
+19,Leytonstone to Stratford Drapers,51.568202,0.008573,,51.551901,-0.004792,bicycle,2020,no
+20,Leytonstone to Lea Bridge via Ruckolt,51.568202,0.008573,"51.557023,-0.011159",51.566811,-0.03659,bicycle,2020,no
+21,Walthamstow to Lea Bridge via Selbourne and Markhouse,51.583144,-0.019976,"51.574723,-0.029349",51.566811,-0.03659,walk,2020,no
+22,Green Man Roundabout to Leytonstone High Road Station,51.571866,0.015676,,51.563102,0.009551,walk,2020,no
+23,Wood Street to Waltham Town Hall,51.586371,-0.002437,,51.591037,-0.013479,walk,2020,no
+24,Walthamstow Central to W altham Town Hall,51.583144,-0.019976,,51.591037,-0.013479,walk,2020,no
+25,Chingford to Chingford Police,51.633341,0.009371,,51.631757,-0.001342,walk,2020,no
+26,Leyton to Drapers Fields,51.556455,-0.005722,,51.551901,-0.004792,walk,2020,no
+27,Chingford to Leyton,51.633341,0.009371,,51.556455,-0.005722,bicycle,2020,yes
+28,Lea Bridge to Whipps Cross,51.566811,-0.03659,,51.578982,0.002724,bicycle,2020,yes
