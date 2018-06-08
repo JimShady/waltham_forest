@@ -56,7 +56,8 @@ Make a loop to calculate the routes and extract the concentrations. If seggregat
 ```{r start_loop, message=F, warning=F}
 
 start_time        <- Sys.time() + 1000
-via_array <- NA
+via_array         <- NA
+
 
 for (i in 1:nrow(exposure_routes)) {
 
@@ -177,7 +178,10 @@ timeslots                <- data.frame(id = unique(result$id), time = seq.POSIXt
 
 ## Now want to split the line into a point per minute
 
-result                   <- st_as_sf(result)
+result                    <- st_as_sf(result)
+result$id                 <- exposure_routes[i,]$journey_id
+
+if (i == 1) {line_result <- result} else {line_result <- rbind(line_result, result)}
 
 result                   <- st_line_sample(result, n = nrow(timeslots), type = 'regular')
 result                   <- suppressWarnings(st_set_crs(result, 27700))
@@ -279,6 +283,8 @@ final_result$time <- NULL
 final_result$line <- NULL
 final_result      <- merge(final_result, exposure_routes[,c('journey_id', 'name', 'seggregated')], by.x = 'id', by.y = 'journey_id')
 rm(i, google_projected, latlong, mode, seggregated, ukgrid)
+
+
 ```
 
 ### Results
@@ -294,7 +300,19 @@ names(summary_results) <- c('Route', 'Mode', 'Year', 'Pollutant', 'Seggregated',
 summary_results[order(summary_results$Route, summary_results$Pollutant, summary_results$Year),] %>% kable(row.names = F) %>% kable_styling()
 ```
 
+```{r make_points_to_sf}
+final_result    <- st_as_sf(final_result)
+```
 
+```{r add_lines_to_summary}
+
+summary_results <- merge(summary_results, exposure_routes[,c('journey_id', 'name')], by.x = 'Route', by.y = 'name')
+
+summary_results <- merge(summary_results, line_result, by.x = 'journey_id', by.y ='id')
+
+summary_results <- st_sf(summary_results[,-c(8)],st_sfc(summary_results$geometry))
+
+```
 
 Now make some plots of the results
 
@@ -305,7 +323,7 @@ for (i in 1:length(unique(final_result$name))) {
   
   route_name <- unique(final_result$name)[i]
   
-  plot[[i]] <- ggplot(final_result[final_result$name == route_name,]@data, 
+  plot[[i]] <- ggplot(final_result[final_result$name == route_name,], 
                       aes(x = as.factor(year), y = concentration, fill = seggregated)) +
     geom_boxplot() +
     facet_wrap(name~pollutant, ncol = 4, scales = 'free_y') +
@@ -336,9 +354,8 @@ plot[[1]]
 
 Example 1 - Chingford to Leyton (Spatial plots)
 
-```{r chingford_to_leyon_spatial}
+```{r chingford_to_leyton_spatial}
 
-final_result <- st_as_sf(final_result)
 final_result <- st_set_crs(final_result, 27700)
 final_result <- st_transform(final_result, 4326)
 
@@ -369,5 +386,32 @@ leaflet()%>%
   addLayersControl(baseGroups = c('2013', '2020')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)") %>%
   addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Chingford <br> & Leyton has dropped by 24% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "topleft")
+
+rm(example_2013, example_2020)
+
+```
+All routes
+
+```{r map_of_routes}
+
+line_result <- st_set_crs(line_result, 27700)
+line_result <- st_transform(line_result, 4326)
+
+leaflet()%>%
+  #addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  #addProviderTiles(providers$Esri.NatGeoWorldMap) %>%
+  addTiles() %>%
+  addFeatures(line_result[line_result$id %in% exposure_routes[exposure_routes$mode == 'bicycle',]$journey_id,],
+              group = 'Bike Routes',
+              color = 'red',
+              popup = as.character(exposure_routes[exposure_routes$journey_id %in% line_result[line_result$id %in% exposure_routes[exposure_routes$mode == 'bicycle',]$journey_id,]$id,]$name),
+              opacity = 0.3) %>%
+    addFeatures(line_result[line_result$id %in% exposure_routes[exposure_routes$mode == 'walk',]$journey_id,],
+                group = 'Walk Routes',
+                color = 'blue',
+                popup = as.character(exposure_routes[exposure_routes$journey_id %in% line_result[line_result$id %in% exposure_routes[exposure_routes$mode == 'walk',]$journey_id,]$id,]$name),
+                 opacity = 0.3) %>%
+  addLayersControl(baseGroups = c('Bike Routes', 'Walk Routes'))
+   
 
 ```
