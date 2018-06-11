@@ -206,7 +206,7 @@ Write concentrations to a CSV
 
 ```{r output to a CSV}
 st_geometry(wards) <- NULL
-write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2_2013', 'mean_pm25_2013', 'mean_no2_2020', 'mean_pm25_2020')]), 'wf_ward_concs.csv', row.names = F)
+write.csv(data.frame(wards[,c('wd16cd', 'wd16nm', 'mean_no2_2013', 'mean_pm25_2013', 'mean_no2_2020', 'mean_pm25_2020')]), 'csv_outputs/wf_ward_concs.csv', row.names = F)
 ```
 
-[Download final CSV from here](https://raw.githubusercontent.com/JimShady/waltham_forest/master/wf_ward_concs.csv)
+[Download final CSV from here](https://raw.githubusercontent.com/JimShady/waltham_forest/master/csv_outputs/wf_ward_concs.csv)
