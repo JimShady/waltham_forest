@@ -367,7 +367,7 @@ qpal <- colorNumeric(
   palette = c("green","yellow","orange","red"),
   domain = c(example_2013$concentration, example_2020$concentration))
 
-leaflet()%>%
+leaflet(options = leafletOptions(attributionControl=F))%>%
   addProviderTiles(providers$Esri.WorldTopoMap)%>%
   addFeatures(example_2013,
               group = '2013',
@@ -383,11 +383,104 @@ leaflet()%>%
               popup = paste0(as.character(round(example_2020$concentration,0)), ' µg/m<sup>3</sup>')) %>%
   addLayersControl(baseGroups = c('2013', '2020')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)") %>%
-  addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Chingford <br> & Leyton has dropped by 24% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "topleft")
-
-rm(example_2013, example_2020)
+  addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Chingford <br> & Leyton has dropped by 22% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "topleft")
 
 ```
+
+Now make a static output of the same.
+
+```{r static_chingford_to_leyton}
+no2_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2013,
+              group = '2013',
+              fillColor = qpal(example_2013$concentration),
+              color="black",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
+
+mapshot(no2_2013_chingford_leyton, file = "no2_2013_chingford_leyton.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+
+no2_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2020,
+              group = '2020',
+              fillColor = qpal(example_2020$concentration),
+              color="black",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
+
+mapshot(no2_2020_chingford_leyton, file = "no2_2020_chingford_leyton.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+```
+
+Example 2 - Leyton to Blackhorse (Spatial plots)
+
+```{r leyton_to_blackhorse_spatial}
+
+example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Leyton to Blackhorse' & final_result$year == 2013,]
+
+example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Leyton to Blackhorse' & final_result$year == 2020,]
+
+qpal <- colorQuantile("YlOrRd", c(example_2013$concentration, example_2020$concentration), n = 7)
+
+qpal <- colorNumeric(
+  palette = c("green","yellow","orange","red"),
+  domain = c(example_2013$concentration, example_2020$concentration))
+
+leaflet(options = leafletOptions(attributionControl=F))%>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2013,
+              group = '2013',
+              fillColor = qpal(example_2013$concentration),
+              color="transparent",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addFeatures(example_2020,
+              group = '2020',
+              fillColor = qpal(example_2020$concentration),
+              color="transparent",
+              fillOpacity = 0.7,
+              popup = paste0(as.character(round(example_2020$concentration,0)), ' µg/m<sup>3</sup>')) %>%
+  addLayersControl(baseGroups = c('2013', '2020')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)") %>%
+  addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Leyton <br> & Blackhorse has dropped by 21% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "bottomleft")
+
+```
+
+Now make a static output of the same.
+
+```{r static_leyton_to_blackhorse}
+no2_2013_leyton_blackhorse <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2013,
+              group = '2013',
+              fillColor = qpal(example_2013$concentration),
+              color="black",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
+
+mapshot(no2_2013_leyton_blackhorse, file = "no2_2013_leyton_blackhorse.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+
+no2_2020_leyton_blackhorse <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2020,
+              group = '2020',
+              fillColor = qpal(example_2020$concentration),
+              color="black",
+              fillOpacity = 0.7,
+             popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
+
+mapshot(no2_2020_leyton_blackhorse, file = "no2_2020_leyton_blackhorse.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+```
+
 All routes
 
 ```{r map_of_routes}
@@ -395,7 +488,7 @@ All routes
 line_result <- st_set_crs(line_result, 27700)
 line_result <- st_transform(line_result, 4326)
 
-leaflet()%>%
+leaflet(options = leafletOptions(attributionControl=F))%>%
   #addProviderTiles(providers$Esri.WorldTopoMap)%>%
   #addProviderTiles(providers$Esri.NatGeoWorldMap) %>%
   addTiles() %>%
@@ -413,3 +506,9 @@ leaflet()%>%
    
 
 ```
+
+```{r write_out_result}
+st_write(final_result, 'exposure_routes.geojson', delete_dsn=TRUE)
+```
+
+[Result available]('exposure_routes.geojson')
