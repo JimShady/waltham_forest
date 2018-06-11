@@ -106,8 +106,6 @@ if ('walk' %in% mode) {
 ##### https://stackoverflow.com/questions/50275195/draw-a-parallel-line-in-r-offset-from-a-line
 #### Only want to do this if seggregated == yes
 
-if (seggregated == 'yes') {
-
 coordinates(result) <- ~lon + lat
 proj4string(result) =  CRS(latlong)
 result <- spTransform(result, ukgrid)
@@ -155,7 +153,7 @@ new_result$mode         <- unique(result$mode)
 result <- new_result
 rm(new_result, new.s, offset, x, xn, xs, y, yn, ys, segment.shift)
 names(result)[1:2] <- c('lon', 'lat')
-} else {}
+
 ##### End of the help from stackoverflow
 
 coordinates(result) <- ~lon + lat
