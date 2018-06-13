@@ -49,6 +49,14 @@ exposure_routes <- read.csv('exposure_journeys.csv',
 exposure_routes[exposure_routes$via_array == '','via_array'] <- NA
 ```
 
+### Import colours
+
+```{r import_laei_colours}
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/pm25_laei2013_colours_breaks.R')
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/no2_laei2013_colours_breaks.R')
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/pm10_laei2013_colours_breaks.R')
+```
+
 ### Route calculation, offest, and exposure calculation
 
 Make a loop to calculate the routes and extract the concentrations. If seggregated==true, then the route is offset by the variable 'offset'
@@ -361,10 +369,10 @@ example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name
 
 example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Chingford to Leyton' & final_result$year == 2020 & final_result$seggregated == 'yes',]
 
-qpal <- colorQuantile("YlOrRd", c(example_2013$concentration, example_2020$concentration), n = 7)
+qpal <- colorQuantile(no2_laei2013_colours, c(example_2013$concentration, example_2020$concentration), n = 16)
 
 qpal <- colorNumeric(
-  palette = c("green","yellow","orange","red"),
+  palette = no2_laei2013_colours,
   domain = c(example_2013$concentration, example_2020$concentration))
 
 leaflet(options = leafletOptions(attributionControl=F))%>%
@@ -395,8 +403,8 @@ no2_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
   addFeatures(example_2013,
               group = '2013',
               fillColor = qpal(example_2013$concentration),
-              color="black",
-              fillOpacity = 0.7,
+              color="transparent",
+              fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
@@ -408,8 +416,8 @@ no2_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
   addFeatures(example_2020,
               group = '2020',
               fillColor = qpal(example_2020$concentration),
-              color="black",
-              fillOpacity = 0.7,
+              color="transparent",
+              fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
@@ -425,10 +433,10 @@ example_2013 <- final_result[final_result$pollutant == 'no2' & final_result$name
 
 example_2020 <- final_result[final_result$pollutant == 'no2' & final_result$name == 'Leyton to Blackhorse' & final_result$year == 2020,]
 
-qpal <- colorQuantile("YlOrRd", c(example_2013$concentration, example_2020$concentration), n = 7)
+qpal <- colorQuantile(no2_laei2013_colours, c(example_2013$concentration, example_2020$concentration), n = 16)
 
 qpal <- colorNumeric(
-  palette = c("green","yellow","orange","red"),
+  palette = no2_laei2013_colours,
   domain = c(example_2013$concentration, example_2020$concentration))
 
 leaflet(options = leafletOptions(attributionControl=F))%>%
@@ -459,8 +467,8 @@ no2_2013_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
   addFeatures(example_2013,
               group = '2013',
               fillColor = qpal(example_2013$concentration),
-              color="black",
-              fillOpacity = 0.7,
+              color="transparent",
+              fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
@@ -472,8 +480,8 @@ no2_2020_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
   addFeatures(example_2020,
               group = '2020',
               fillColor = qpal(example_2020$concentration),
-              color="black",
-              fillOpacity = 0.7,
+              color="transparent",
+              fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
