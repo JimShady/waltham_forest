@@ -406,7 +406,7 @@ no2_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
               color="transparent",
               fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2013$concentration,0)),' ?g/m<sup>3</sup>')) %>%
-  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (?g/m<sup>3</sup>)")
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
 mapshot(no2_2013_chingford_leyton, file = "no2_2013_chingford_leyton.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
@@ -419,7 +419,7 @@ no2_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
               color="transparent",
               fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2020$concentration,0)),' ?g/m<sup>3</sup>')) %>%
-  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (?g/m<sup>3</sup>)")
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
 mapshot(no2_2020_chingford_leyton, file = "no2_2020_chingford_leyton.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
@@ -446,15 +446,15 @@ leaflet(options = leafletOptions(attributionControl=F))%>%
               fillColor = qpal(example_2013$concentration),
               color="transparent",
               fillOpacity = 0.7,
-             popup = paste0(as.character(round(example_2013$concentration,0)),' ?g/m<sup>3</sup>')) %>%
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addFeatures(example_2020,
               group = '2020',
               fillColor = qpal(example_2020$concentration),
               color="transparent",
               fillOpacity = 0.7,
-              popup = paste0(as.character(round(example_2020$concentration,0)), ' ?g/m<sup>3</sup>')) %>%
+              popup = paste0(as.character(round(example_2020$concentration,0)), ' µg/m<sup>3</sup>')) %>%
   addLayersControl(baseGroups = c('2013', '2020')) %>%
-  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (?g/m<sup>3</sup>)") %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)") %>%
   addControl('<strong>Exposure to NO<sub>2</sub> while cycling between Leyton <br> & Blackhorse has dropped by 21% between 2013<br>and 2020 due to improvements in air<br> quality, and the introduction of seggregated <br> cycle lanes.</strong>', position = "bottomleft")
 
 ```
@@ -470,7 +470,7 @@ no2_2013_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
               color="transparent",
               fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2013$concentration,0)),' ?g/m<sup>3</sup>')) %>%
-  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (?g/m<sup>3</sup>)")
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
 mapshot(no2_2013_leyton_blackhorse, file = "no2_2013_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
@@ -483,11 +483,54 @@ no2_2020_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
               color="transparent",
               fillOpacity = 0.9,
              popup = paste0(as.character(round(example_2020$concentration,0)),' ?g/m<sup>3</sup>')) %>%
-  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (?g/m<sup>3</sup>)")
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
 mapshot(no2_2020_leyton_blackhorse, file = "no2_2020_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 ```
+
+PM2.5 from Chingford to Leyton
+
+```{r pm25_leyton_to_blackhorse}
+
+example_2013 <- final_result[final_result$pollutant == 'pm25' & final_result$name == 'Leyton to Blackhorse' & final_result$year == 2013,]
+
+example_2020 <- final_result[final_result$pollutant == 'pm25' & final_result$name == 'Leyton to Blackhorse' & final_result$year == 2020,]
+
+qpal <- colorQuantile(pm25_laei2013_colours, c(example_2013$concentration, example_2020$concentration), n = 11)
+
+qpal <- colorNumeric(
+  palette = pm25_laei2013_colours,
+  domain = c(example_2013$concentration, example_2020$concentration))
+
+pm25_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2013,
+              group = '2013',
+              fillColor = qpal(example_2013$concentration),
+              color="transparent",
+              fillOpacity = 0.9,
+             popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="PM2.5 (µg/m<sup>3</sup>)")
+
+mapshot(pm25_2013_chingford_leyton, file = "pm25_2013_leyton_blackhorse.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+
+pm25_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
+  addProviderTiles(providers$Esri.WorldTopoMap)%>%
+  addFeatures(example_2020,
+              group = '2020',
+              fillColor = qpal(example_2020$concentration),
+              color="transparent",
+              fillOpacity = 0.9,
+             popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
+  addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="PM2.5 (µg/m<sup>3</sup>)")
+
+mapshot(pm25_2020_chingford_leyton, file = "pm25_2020_leyton_blackhorse.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
+
+```
+
 
 All routes
 
