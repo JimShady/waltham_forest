@@ -329,7 +329,7 @@ for (i in 1:length(unique(final_result$name))) {
   
   route_name <- unique(final_result$name)[i]
   
-  plot[[i]] <- ggplot(final_result[final_result$name == route_name,], 
+  plot[[i]] <- ggplot(final_result[final_result$name == route_name & final_result$pollutant %in% c('no2', 'pm25'),], 
                       aes(x = as.factor(year), y = concentration, fill = seggregated)) +
     geom_boxplot() +
     facet_wrap(name~pollutant, ncol = 4, scales = 'free_y') +
@@ -346,7 +346,7 @@ for (i in 1:length(unique(final_result$name))) {
     panel.background = element_rect(fill = NA, 
         colour = "black", linetype = "solid"), 
     plot.background = element_rect(colour = NA),
-    strip.text.x = element_text(size = 8),
+    strip.text.x = element_text(size = 12),
     strip.background = element_blank())
 
 }
