@@ -1,15 +1,13 @@
 ---
 title: "Walking & cycling exposure in Walthamstow: 2013 v. 2021"
-author: "James Smith"
 output:
   html_document:
     toc_float: true
     toc: true
     toc_depth: 4
     collapsed: false
-date: "`r format(Sys.time(), '%Y-%m%-%d %H%:%M')`"
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="exposure.html") })
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs", output_file ="exposure.html") })
 ---
 
 this document descibes the process of calcualting walking and cycling exposure for a number of typical routes within the London Borough of Waltham Forest.
@@ -34,7 +32,9 @@ library('leaflet')
 library('mapview')
 library('kableExtra')
 
-## rmarkdown::render('make_exposure.Rmd', output_dir = "docs", output_file ="exposure.html")
+## Script doesn't run in Rstudio using the 'Knit' button, but if put the below in the console it should do.
+## rmarkdown::render('markdown_scripts/1-make_exposure.Rmd', output_dir = "../docs", output_file ="exposure.html")
+
 ```
 
 ### Data import
@@ -43,7 +43,7 @@ Import routes
 
 ```{r import_routes}
 
-exposure_routes <- read.csv('exposure_journeys.csv',
+exposure_routes <- read.csv('../csv_inputs/exposure_journeys.csv',
                             stringsAsFactors = F)
 
 exposure_routes[exposure_routes$via_array == '','via_array'] <- NA
@@ -52,9 +52,9 @@ exposure_routes[exposure_routes$via_array == '','via_array'] <- NA
 ### Import colours
 
 ```{r import_laei_colours}
-source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/pm25_laei2013_colours_breaks.R')
-source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/no2_laei2013_colours_breaks.R')
-source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/pm10_laei2013_colours_breaks.R')
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/2013/pm25_laei2013_colours_breaks.R')
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/2013/no2_laei2013_colours_breaks.R')
+source('https://raw.githubusercontent.com/KCL-ERG/colour_schemes/master/2013/pm10_laei2013_colours_breaks.R')
 ```
 
 ### Route calculation, offest, and exposure calculation
@@ -93,8 +93,8 @@ ukgrid                  <- "+init=epsg:27700"
 google_projected        <- "+init=epsg:3857 +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"
 
 # Take the start/end data and get a route from Google
-if ('walk' %in% mode)     { source("routing/walking.R") }
-if ('bicycle' %in% mode)  { source("routing/cycling.R") }
+if ('walk' %in% mode)     { source("../routing_functions/walking.R") }
+if ('bicycle' %in% mode)  { source("../routing_functions/cycling.R") }
 
 rm(start_lat, start_lon, end_lat, end_lon)
 
@@ -208,13 +208,14 @@ proj4string(result)       <- CRS(ukgrid)
 
 ## 2013 concentration maps
 if (exposure_routes[i,]$year == 2013) {
-wf_2013_no2              <- raster('air_quality/no2_2013.asc')
+  
+wf_2013_no2              <- raster('../air_quality_inputs/no2_2013.asc')
 crs(wf_2013_no2)         <- CRS(ukgrid)
-wf_2013_nox              <- raster('air_quality/nox_2013.asc')
+wf_2013_nox              <- raster('../air_quality_inputs/nox_2013.asc')
 crs(wf_2013_nox)         <- CRS(ukgrid)
-wf_2013_pm10             <- raster('air_quality/pm10_2013.asc')
+wf_2013_pm10             <- raster('../air_quality_inputs/pm10_2013.asc')
 crs(wf_2013_pm10)        <- CRS(ukgrid)
-wf_2013_pm25             <- raster('air_quality/pm25_2013.asc')
+wf_2013_pm25             <- raster('../air_quality_inputs/pm25_2013.asc')
 crs(wf_2013_pm25)        <- CRS(ukgrid)
 
 # Extract concentrations
@@ -242,13 +243,14 @@ rm(wf_2013_no2, wf_2013_nox, wf_2013_pm10, wf_2013_pm25,nox, no2, pm25, pm10)
 
 ## 2020 concentration maps 
 if (exposure_routes[i,]$year == 2020) {
-wf_2020_no2              <- raster('air_quality/no2_2020.asc')
+  
+wf_2020_no2              <- raster('../air_quality_inputs/no2_2020.asc')
 crs(wf_2020_no2)         <- CRS(ukgrid)
-wf_2020_nox              <- raster('air_quality/nox_2020.asc')
+wf_2020_nox              <- raster('../air_quality_inputs/nox_2020.asc')
 crs(wf_2020_nox)         <- CRS(ukgrid)
-wf_2020_pm10             <- raster('air_quality/pm10_2020.asc')
+wf_2020_pm10             <- raster('../air_quality_inputs/pm10_2020.asc')
 crs(wf_2020_pm10)        <- CRS(ukgrid)
-wf_2020_pm25             <- raster('air_quality/pm25_2020.asc')
+wf_2020_pm25             <- raster('../air_quality_inputs/pm25_2020.asc')
 crs(wf_2020_pm25)        <- CRS(ukgrid)
 
 # Extract concentrations
@@ -408,7 +410,7 @@ no2_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
              popup = paste0(as.character(round(example_2013$concentration,0)),' ?g/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
-mapshot(no2_2013_chingford_leyton, file = "no2_2013_chingford_leyton.png",
+mapshot(no2_2013_chingford_leyton, file = "../map_outputs/no2_2013_chingford_leyton.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 
 no2_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
@@ -421,7 +423,7 @@ no2_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl
              popup = paste0(as.character(round(example_2020$concentration,0)),' ?g/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
-mapshot(no2_2020_chingford_leyton, file = "no2_2020_chingford_leyton.png",
+mapshot(no2_2020_chingford_leyton, file = "../map_outputs/no2_2020_chingford_leyton.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 ```
 
@@ -472,7 +474,7 @@ no2_2013_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
              popup = paste0(as.character(round(example_2013$concentration,0)),' ?g/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
-mapshot(no2_2013_leyton_blackhorse, file = "no2_2013_leyton_blackhorse.png",
+mapshot(no2_2013_leyton_blackhorse, file = "../map_outputs/no2_2013_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 
 no2_2020_leyton_blackhorse <- leaflet(options = leafletOptions(attributionControl=F)) %>%
@@ -485,7 +487,7 @@ no2_2020_leyton_blackhorse <- leaflet(options = leafletOptions(attributionContro
              popup = paste0(as.character(round(example_2020$concentration,0)),' ?g/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="NO2 (µg/m<sup>3</sup>)")
 
-mapshot(no2_2020_leyton_blackhorse, file = "no2_2020_leyton_blackhorse.png",
+mapshot(no2_2020_leyton_blackhorse, file = "../map_outputs/no2_2020_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 ```
 
@@ -513,7 +515,7 @@ pm25_2013_chingford_leyton <- leaflet(options = leafletOptions(attributionContro
              popup = paste0(as.character(round(example_2013$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="PM2.5 (µg/m<sup>3</sup>)")
 
-mapshot(pm25_2013_chingford_leyton, file = "pm25_2013_leyton_blackhorse.png",
+mapshot(pm25_2013_chingford_leyton, file = "../map_outputs/pm25_2013_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 
 pm25_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionControl=F)) %>%
@@ -526,7 +528,7 @@ pm25_2020_chingford_leyton <- leaflet(options = leafletOptions(attributionContro
              popup = paste0(as.character(round(example_2020$concentration,0)),' µg/m<sup>3</sup>')) %>%
   addLegend(pal=qpal,values=c(example_2013$concentration, example_2020$concentration),title="PM2.5 (µg/m<sup>3</sup>)")
 
-mapshot(pm25_2020_chingford_leyton, file = "pm25_2020_leyton_blackhorse.png",
+mapshot(pm25_2020_chingford_leyton, file = "../map_outputs/pm25_2020_leyton_blackhorse.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 
 ```
@@ -565,13 +567,13 @@ temp_static <- leaflet(options = leafletOptions(attributionControl=F)) %>%
   addProviderTiles(providers$Esri.WorldTopoMap)%>%
   addFeatures(line_result[line_result$id == 1,])
 
-mapshot(temp_static, file = "route_chingford_leyton.png",
+mapshot(temp_static, file = "../map_outputs/route_chingford_leyton.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton", "scaleBar"))
 
 ```
 
 ```{r write_out_result}
-st_write(final_result, 'exposure_routes.geojson', delete_dsn=TRUE)
+st_write(final_result, '../geojson_outputs/exposure_routes.geojson', delete_dsn=TRUE)
 ```
 
-[Result available]('exposure_routes.geojson')
+[Result available]('../geojson_outputs/exposure_routes.geojson')

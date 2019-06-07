@@ -1,4 +1,4 @@
-source('../google_api_key.R')
+source('../../google_api_key.R')
 
 if (is.na(via_array[[1]])) {
 
