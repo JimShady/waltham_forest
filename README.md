@@ -2,7 +2,7 @@
 
 ## [Exposure](https://github.com/JimShady/waltham_forest/blob/master/markdown_scripts/1-make_exposure.Rmd)
 
-Using the journeys described in [this CSV file](../csv_inputs/exposure_journeys.csv), this script calculates the walking and cycling exposure on a number of popular journeys in Waltham Forest for in 2013, and 2020. It outputs the results to the [RMarkdown page here](https://jimshady.github.io/waltham_forest/exposure.html), and to [a GeoJSON file here](../geojson_outputs/exposure_routes.geojson).
+Using the journeys described in [this CSV file](https://github.com/JimShady/waltham_forest/blob/master/csv_inputs/exposure_journeys.csv), this script calculates the walking and cycling exposure on a number of popular journeys in Waltham Forest for in 2013, and 2020. It outputs the results to the [RMarkdown page here](https://jimshady.github.io/waltham_forest/exposure.html), and to [a GeoJSON file here](https://github.com/JimShady/waltham_forest/blob/master/geojson_outputs/exposure_routes.geojson).
 
 ## [Maps](https://github.com/JimShady/waltham_forest/blob/master/markdown_scripts/2-waltham_forest_maps.Rmd)
 
